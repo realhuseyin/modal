@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <title>Sohbet</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="icerik">
+            <h2>Trigoter</h2>
+            <button class="hamburger" id="hamburgerBtn">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                    <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Odalar</a></li>
+                    <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+                    <li><button class="Btn" id="logoutButton">
+                        <span class="material-symbols-outlined">logout</span> Çıkış
+                    </button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="partner-info">
+                <img id="partnerImage" src="default-avatar.png" alt="Profil" style="width: 40px;" class="profile-image">
+                <div class="partner-details">
+                    <h2>Sohbet Arkadaşın: <span id="partnerName">...</span></h2>
+                    <span class="status">Çevrimiçi</span>
+                </div>
+            </div>
+            <button id="friendRequestBtn" class="friend-request-btn">
+                <span class="material-symbols-outlined">person_add</span>
+                Arkadaş Ekle
+            </button>
+            <button onclick="window.location.href='index.html'" class="exit-btn">
+                <span class="material-symbols-outlined">exit_to_app</span>
+                Çıkış
+            </button>
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Mesajınızı yazın...">
+            <button id="sendButton">
+                <span class="material-symbols-outlined">send</span>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            onSnapshot,
+            query, 
+            orderBy,
+            doc,
+            getDoc,
+            serverTimestamp,
+            setDoc,
+            where,
+            getDocs 
+        } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // Firebase yapılandırmanızı buraya ekleyin
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    hamburgerBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Menü dışı tıklamada kapat
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('nav')) {
+            navLinks.classList.remove('active');
+        }
+    });
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
+
+        // Chat ID'sini URL'den al
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('id');
+
+        // Mesajları dinle
+        function listenToMessages() {
+            const messagesRef = collection(db, 'chats', chatId, 'messages');
+            const q = query(messagesRef, orderBy('timestamp', 'asc'));
+
+            onSnapshot(q, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added') {
+                        addMessageToUI(change.doc.data());
+                    }
+                });
+            });
+        }
+        document.getElementById("logoutButton").addEventListener("click", function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // Çıkış yaptıktan sonra giriş sayfasına yönlendir
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+            });
+        });
+        // Mesajı UI'a ekle
+        function addMessageToUI(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            const isOwnMessage = message.userId === auth.currentUser.uid;
+            
+            messageElement.className = `message ${isOwnMessage ? 'sent' : 'received'}`;
+            messageElement.innerHTML = `
+                <div class="message-header">
+                    <img src="${message.userPhoto || getDefaultAvatar(message.userId)}" alt="avatar" style="width: 30px; height: 30px; border-radius: 50%;" class="message-avatar">
+                    <span class="message-username">${message.userName || 'Anonim'}</span>
+                </div>
+                <div class="message-content">
+                    <p>${message.text}</p>
+                    <span class="time">${formatTime(message.timestamp)}</span>
+                </div>
+            `;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Mesaj gönder
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                try {
+                    const currentUser = auth.currentUser;
+                    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+                        text: text,
+                        userId: currentUser.uid,
+                        userName: currentUser.displayName || 'Anonim',
+                        userPhoto: currentUser.photoURL,
+                        timestamp: serverTimestamp()
+                    });
+                    
+                    input.value = '';
+                } catch (error) {
+                    console.error('Mesaj gönderme hatası:', error);
+                    alert('Mesaj gönderilemedi!');
+                }
+            }
+        }
+
+        // Zaman formatla
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = timestamp.toDate();
+            const now = new Date();
+            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            
+            // Tarih formatı ayarları
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const dateOptions = { day: 'numeric', month: 'long' };
+            
+            if (diffDays === 0) {
+                // Bugün atılan mesajlar için sadece saat
+                return date.toLocaleTimeString('tr-TR', timeOptions);
+            } else if (diffDays === 1) {
+                // Dün atılan mesajlar
+                return `Dün ${date.toLocaleTimeString('tr-TR', timeOptions)}`;
+            } else if (diffDays < 7) {
+                // Son 7 gün içinde
+                const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+                return `${days[date.getDay()]} ${date.toLocaleTimeString('tr-TR', timeOptions)}`;
+            } else {
+                // 7 günden eski mesajlar için tam tarih
+                return `${date.toLocaleDateString('tr-TR', dateOptions)} ${date.toLocaleTimeString('tr-TR', timeOptions)}`;
+            }
+        }
+
+        // Event listener'ları ekle
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Sayfa yüklendiğinde
+        onAuthStateChanged(auth, async (user) => {
+            try {
+                if (user) {
+                    if (!chatId) {
+                        console.error('Chat ID bulunamadı');
+                        window.location.replace('index.html');
+                        return;
+                    }
+                    
+                    // Önce chat'in var olduğundan emin olalım
+                    const chatDoc = await getDoc(doc(db, 'chats', chatId));
+                    if (!chatDoc.exists()) {
+                        console.error('Chat bulunamadı');
+                        window.location.replace('index.html');
+                        return;
+                    }
+
+                    // Chat'e erişim izni kontrolü
+                    const chatData = chatDoc.data();
+                    if (!chatData.users.includes(user.uid)) {
+                        console.error('Bu chat\'e erişim izniniz yok');
+                        window.location.replace('index.html');
+                        return;
+                    }
+
+                    // Chat bilgilerini yükle
+                    await loadChat();
+                    // Mesajları dinlemeye başla
+                    listenToMessages();
+                } else {
+                    console.log('Kullanıcı giriş yapmamış');
+                    window.location.replace('login.html');
+                }
+            } catch (error) {
+                console.error('Sayfa yükleme hatası:', error);
+                alert('Bir hata oluştu: ' + error.message);
+            }
+        });
+
+        // Chat bilgilerini yükle
+        async function loadChat() {
+            try {
+                const chatDoc = await getDoc(doc(db, 'chats', chatId));
+                const data = chatDoc.data();
+                const users = data.users;
+                const userNames = data.userNames || [];
+                const userPhotos = data.userPhotos || [];
+                
+                // Kullanıcının chat'teki index'ini bul
+                const currentUserIndex = users.indexOf(auth.currentUser.uid);
+                const partnerIndex = currentUserIndex === 0 ? 1 : 0;
+                
+                if (partnerIndex >= 0 && partnerIndex < users.length) {
+                    // Partner bilgilerini göster
+                    document.getElementById('partnerName').textContent = userNames[partnerIndex] || 'İsimsiz Kullanıcı';
+                    document.getElementById('partnerImage').src = userPhotos[partnerIndex] || getDefaultAvatar(users[partnerIndex]);
+                } else {
+                    console.error('Partner bilgileri bulunamadı');
+                }
+            } catch (error) {
+                console.error('Chat yükleme hatası:', error);
+                throw error; // Üst seviyede yakalanması için hatayı tekrar fırlat
+            }
+        }
+
+        // Varsayılan avatar al
+        function getDefaultAvatar(userId) {
+            const avatars = [
+                'https://api.dicebear.com/6.x/avataaars/svg?seed=1',
+                'https://api.dicebear.com/6.x/avataaars/svg?seed=2',
+                'https://api.dicebear.com/6.x/avataaars/svg?seed=3',
+                'https://api.dicebear.com/6.x/avataaars/svg?seed=4',
+                'https://api.dicebear.com/6.x/avataaars/svg?seed=5'
+            ];
+            const index = Math.abs(hashCode(userId)) % avatars.length;
+            return avatars[index];
+        }
+
+        // String hash fonksiyonu
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash = hash & hash;
+            }
+            return hash;
+        }
+
+        // Arkadaşlık isteği gönderme fonksiyonu
+        async function sendFriendRequest() {
+            try {
+                const currentUser = auth.currentUser;
+                const chatDoc = await getDoc(doc(db, 'chats', chatId));
+                const data = chatDoc.data();
+                const partnerId = data.users.find(uid => uid !== currentUser.uid);
+
+                // Önceki istekleri kontrol et
+                const requestsRef = collection(db, 'friendRequests');
+                const q = query(requestsRef, 
+                    where('senderId', '==', currentUser.uid),
+                    where('receiverId', '==', partnerId)
+                );
+                const existingRequests = await getDocs(q);
+
+                if (!existingRequests.empty) {
+                    alert('Bu kullanıcıya zaten arkadaşlık isteği gönderilmiş!');
+                    return;
+                }
+
+                // Yeni istek oluştur
+                await addDoc(collection(db, 'friendRequests'), {
+                    senderId: currentUser.uid,
+                    senderName: currentUser.displayName || 'Anonim',
+                    senderPhoto: currentUser.photoURL,
+                    receiverId: partnerId,
+                    status: 'pending',
+                    timestamp: serverTimestamp()
+                });
+
+                alert('Arkadaşlık isteği gönderildi!');
+                window.location.href = 'friends.html'; // arkadas.html yerine friends.html'e yönlendir
+
+            } catch (error) {
+                console.error('Arkadaşlık isteği gönderme hatası:', error);
+                alert('İstek gönderilemedi: ' + error.message);
+            }
+        }
+
+        // Event listener ekle
+        document.getElementById('friendRequestBtn').addEventListener('click', sendFriendRequest);
+    </script>
+</body>
+</html> 

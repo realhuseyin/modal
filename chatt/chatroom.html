@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <title>Sohbet Odası</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+    <nav>
+        <div class="icerik">
+            <h2>Trigoter</h2>
+            <button class="hamburger" id="hamburgerBtn">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                    <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Odalar</a></li>
+                    <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+                    <li><button class="Btn" id="logoutButton">
+                        <span class="material-symbols-outlined">logout</span> Çıkış
+                    </button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="chat-container">
+        <div class="chat-header">
+            <h2 id="roomTitle">Sohbet Odası</h2>
+            <span id="onlineCount">Çevrimiçi: 0</span>
+        </div>
+        
+        <div class="messages" id="messageArea">
+            <!-- Mesajlar buraya gelecek -->
+        </div>
+
+        <form id="messageForm" class="message-form">
+            <div class="input-group">
+                <input type="text" id="messageInput" placeholder="Mesajınızı yazın..." required style="width: 100%;">
+                
+                <label for="imageInput" class="image-upload-label">
+                    <span class="material-symbols-outlined">image</span>
+                    <input type="file" id="imageInput" accept="image/*">
+                </label>
+                
+                <button type="submit">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    hamburgerBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Menü dışı tıklamada kapat
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('nav')) {
+            navLinks.classList.remove('active');
+        }
+    });
+        // Firebase'i başlat
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // URL'den oda adını al
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomName = urlParams.get('room');
+        
+        // Sayfa başlığını güncelle
+        document.getElementById('roomTitle').textContent = 
+            roomName.charAt(0).toUpperCase() + roomName.slice(1) + ' Sohbet Odası';
+
+        // Kullanıcının profil bilgilerini al
+        async function getUserProfile(userId) {
+            try {
+                const doc = await db.collection('users').doc(userId).get();
+                if (doc.exists) {
+                    return {
+                        ...doc.data(),
+                        // Profildeki kullanıcı adını kullan, yoksa varsayılan değeri kullan
+                        displayName: doc.data().username || doc.data().displayName || 'Anonim',
+                        photoURL: doc.data().photoURL || getDefaultAvatar(userId)
+                    };
+                }
+                return {
+                    displayName: 'Anonim',
+                    photoURL: getDefaultAvatar(userId)
+                };
+            } catch (error) {
+                console.error('Profil bilgisi alınamadı:', error);
+                return {
+                    displayName: 'Anonim',
+                    photoURL: getDefaultAvatar(userId)
+                };
+            }
+        }
+        document.getElementById("logoutButton").addEventListener("click", function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // Çıkış yaptıktan sonra giriş sayfasına yönlendir
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+            });
+        });
+        let messageUnsubscribe = null;
+        let isFirstLoad = true;
+
+        // Tarih formatlama yardımcı fonksiyonu
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = timestamp.toDate();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Kullanıcı ID'sine göre sabit bir avatar seçen fonksiyon
+        function getDefaultAvatar(userId) {
+            // DiceBear Avatars kullanımı
+            return `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${userId}`;
+            
+            // veya RoboHash kullanımı
+            // return `https://robohash.org/${userId}?set=set4`;
+        }
+
+        // Mesajları dinleme fonksiyonunu güncelle
+        function listenToMessages() {
+    if (messageUnsubscribe) {
+        messageUnsubscribe();
+        messageUnsubscribe = null;
+    }
+
+    const messageArea = document.getElementById('messageArea');
+    let messages = new Map();
+
+    // İlk yüklemede son mesajları al (son 50 mesaj gibi)
+    db.collection('rooms')
+        .doc(roomName)
+        .collection('messages')
+        .orderBy('timestamp', 'desc') // Değişiklik: desc ile en son mesajları önce al
+        .limit(50) // Son 50 mesajı al
+        .get()
+        .then(async (snapshot) => {
+            messageArea.innerHTML = '';
+            // Mesajları doğru sırada göstermek için reverse() kullan
+            const docs = snapshot.docs.reverse();
+            
+            for (const doc of docs) {
+                const messageData = doc.data();
+                messages.set(doc.id, messageData);
+                await renderSingleMessage(messageData, messageArea);
+            }
+            // Scroll to the bottom after loading messages
+            messageArea.scrollTop = messageArea.scrollHeight;
+
+            // Yeni mesajları dinle
+            messageUnsubscribe = db.collection('rooms')
+                .doc(roomName)
+                .collection('messages')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(async (snapshot) => {
+                    for (const change of snapshot.docChanges()) {
+                        if (change.type === "added" && !messages.has(change.doc.id)) {
+                            const messageData = change.doc.data();
+                            messages.set(change.doc.id, messageData);
+                            await renderSingleMessage(messageData, messageArea);
+                            // Scroll to the bottom when a new message is added
+                            messageArea.scrollTop = messageArea.scrollHeight;
+                        }
+                    }
+                });
+        });
+}
+
+        // Tek bir mesajı render eden yeni fonksiyon
+        async function renderSingleMessage(message, messageArea) {
+            const userProfile = await getUserProfile(message.userId);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.userId === firebase.auth().currentUser?.uid ? 'own-message' : ''}`;
+            
+            let content = `
+                <div class="message-header">
+                    <img src="${userProfile.photoURL}" alt="Profil" class="message-avatar">
+                    <strong>${userProfile.displayName}</strong>
+                    <small>${formatDate(message.timestamp)}</small>
+                </div>
+                <div class="message-content">
+            `;
+
+            if (message.text) {
+                content += `<p>${message.text}</p>`;
+            }
+            
+            if (message.image) {
+                content += `<img src="${message.image}" alt="Paylaşılan resim" class="message-image">`;
+            }
+
+            content += `</div>`;
+            messageDiv.innerHTML = content;
+
+            messageArea.appendChild(messageDiv);
+        }
+
+        // Resmi sıkıştıran fonksiyon
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; // Maximum genişlik
+                        const MAX_HEIGHT = 800; // Maximum yükseklik
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // 0.7 kalite oranı
+                    };
+                };
+            });
+        }
+
+        // Mesaj gönderme fonksiyonunu sadeleştir
+        document.getElementById('messageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const messageInput = document.getElementById('messageInput');
+            const imageInput = document.getElementById('imageInput');
+            
+            if (!messageInput.value.trim() && !imageInput.files[0]) return;
+
+            try {
+                const currentUser = firebase.auth().currentUser;
+                const userProfile = await getUserProfile(currentUser.uid);
+                
+                let imageData = null;
+                if (imageInput.files[0]) {
+                    imageData = await compressImage(imageInput.files[0]);
+                }
+
+                const message = {
+                    text: messageInput.value.trim(),
+                    image: imageData,
+                    userId: currentUser.uid,
+                    username: userProfile.displayName, // Profildeki kullanıcı adını kullan
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                await db.collection('rooms').doc(roomName).collection('messages').add(message);
+                messageInput.value = '';
+                imageInput.value = '';
+            } catch (error) {
+                console.error('Mesaj gönderme hatası:', error);
+                showToast('Mesaj gönderilemedi', 'error');
+            }
+        });
+
+        // Resim seçildiğinde önizleme göster (opsiyonel)
+        document.getElementById('imageInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    const compressedImage = await compressImage(file);
+                    // İsterseniz burada bir önizleme gösterebilirsiniz
+                    showToast('Resim hazır!', 'success');
+                } catch (error) {
+                    console.error('Resim işleme hatası:', error);
+                    showToast('Resim işlenirken hata oluştu', 'error');
+                }
+            }
+        });
+
+        // Sayfa yüklendiğinde ve auth durumu değiştiğinde
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                if (messageUnsubscribe) {
+                    messageUnsubscribe();
+                    messageUnsubscribe = null;
+                }
+                window.location.href = 'login.html';
+            } else {
+                isFirstLoad = true;
+                listenToMessages();
+                trackOnlineUsers();
+            }
+        });
+
+        // Sayfa kapatılırken temizlik yap
+        window.addEventListener('beforeunload', () => {
+            if (messageUnsubscribe) {
+                messageUnsubscribe();
+                messageUnsubscribe = null;
+            }
+        });
+
+        // Çıkış yapma işlemi
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            firebase.auth().signOut()
+                .then(() => {
+                    window.location.href = 'login.html';
+                })
+                .catch((error) => {
+                    console.error('Çıkış hatası:', error);
+                });
+        });
+
+        // Çevrimiçi kullanıcıları takip etme fonksiyonu
+        function trackOnlineUsers() {
+            const userStatusRef = db.collection('rooms').doc(roomName).collection('users');
+            
+            // Son 2 dakika içinde aktif olan kullanıcıları çevrimiçi say
+            setInterval(() => {
+                const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+                
+                userStatusRef
+                    .where('lastSeen', '>', twoMinutesAgo)
+                    .get()
+                    .then((snapshot) => {
+                        const onlineCount = snapshot.size;
+                        document.getElementById('onlineCount').textContent = `Çevrimiçi: ${onlineCount}`;
+                    });
+            }, 5000); // Her 5 saniyede bir güncelle
+            
+            // Kullanıcının son görülme zamanını güncelle
+            setInterval(() => {
+                if (firebase.auth().currentUser) {
+                    userStatusRef.doc(firebase.auth().currentUser.uid).update({
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            }, 10000); // Her 30 saniyede bir güncelle
+        }
+
+        // Toast bildirimi için fonksiyon ve stil ekleyelim
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animasyon için setTimeout
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // 3 saniye sonra toast'u kaldır
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Toast için stil eklemeleri
+        const toastStyle = document.createElement('style');
+        toastStyle.textContent = `
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: #333;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 4px;
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: 1000;
+            }
+
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+
+            .toast-success {
+                background: #4caf50;
+            }
+
+            .toast-error {
+                background: #f44336;
+            }
+
+            .toast-info {
+                background: #2196f3;
+            }
+        `;
+        document.head.appendChild(toastStyle);
+
+        // Stil eklemeleri
+        const style = document.createElement('style');
+        style.textContent = `
+            .message-image {
+                max-width: 300px;
+                max-height: 300px;
+                border-radius: 8px;
+                margin-top: 5px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <style>
+    .chat-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .messages {
+        height: 70vh;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 8px;
+        background: white;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+        max-width: 80%;
+    }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .own-message .message-header {
+        flex-direction: row-reverse;
+    }
+
+    .own-message {
+        background: #e3f2fd;
+        margin-left: auto;
+    }
+
+    .message strong {
+        color: #1565c0;
+    }
+
+    .message p {
+        margin: 0.5rem 0;
+    }
+
+    .message small {
+        color: #666;
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .message-form {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .message-form input {
+        flex: 1;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .message-form button {
+        padding: 0.8rem 1.5rem;
+        background: #1565c0;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .message-form button:hover {
+        background: #0d47a1;
+    }
+
+    #onlineCount {
+        background: #4caf50;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #onlineCount::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        width: 100%;
+    }
+
+    .image-upload-label {
+        cursor: pointer;
+        padding: 0.8rem;
+        background: #f0f0f0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+    }
+
+    .image-upload-label:hover {
+        background: #e0e0e0;
+    }
+
+    .image-upload-label span {
+        color: #1565c0;
+    }
+
+    #imageInput {
+        display: none;
+    }
+    </style>
+</body>
+</html> 

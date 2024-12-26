@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <title>Sohbetler</title>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+    <nav>
+        <div class="icerik">
+            <h2>Trigoter</h2>
+            <button class="hamburger" id="hamburgerBtn">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                    <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Odalar</a></li>
+                    <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+                    <li><button class="Btn" id="logoutButton">
+                        <span class="material-symbols-outlined">logout</span> Çıkış
+                    </button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="chat-rooms">
+            <h2>Sohbet Odaları</h2>
+            
+            <div class="room-category">
+                <h3>🎮 Oyun & Eğlence</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('valorant')" class="room-btn game">
+                        <span class="material-symbols-outlined">sports_esports</span>
+                        Valorant
+                    </button>
+                    <button onclick="joinRoom('minecraft')" class="room-btn game">
+                        <span class="material-symbols-outlined">grid_view</span>
+                        Minecraft
+                    </button>
+                    <button onclick="joinRoom('pubg')" class="room-btn game">
+                        <span class="material-symbols-outlined">target</span>
+                        PUBG
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>📚 Eğitim</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('yazilim')" class="room-btn edu">
+                        <span class="material-symbols-outlined">code</span>
+                        Yazılım
+                    </button>
+                    <button onclick="joinRoom('matematik')" class="room-btn edu">
+                        <span class="material-symbols-outlined">functions</span>
+                        Matematik
+                    </button>
+                    <button onclick="joinRoom('ingilizce')" class="room-btn edu">
+                        <span class="material-symbols-outlined">translate</span>
+                        İngilizce
+                    </button>
+                    <button onclick="joinRoom('universite')" class="room-btn edu">
+                        <span class="material-symbols-outlined">school</span>
+                        Üniversite
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>🎯 Hobiler</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('muzik')" class="room-btn hobby">
+                        <span class="material-symbols-outlined">music_note</span>
+                        Müzik
+                    </button>
+                    <button onclick="joinRoom('spor')" class="room-btn hobby">
+                        <span class="material-symbols-outlined">fitness_center</span>
+                        Spor
+                    </button>
+                    <button onclick="joinRoom('kitap')" class="room-btn hobby">
+                        <span class="material-symbols-outlined">auto_stories</span>
+                        Kitap
+                    </button>
+                    <button onclick="joinRoom('film')" class="room-btn hobby">
+                        <span class="material-symbols-outlined">movie</span>
+                        Film & Dizi
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>💭 Sohbet</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('muhabbet')" class="room-btn chat">
+                        <span class="material-symbols-outlined">chat</span>
+                        Muhabbet
+                    </button>
+                    <button onclick="joinRoom('ask')" class="room-btn chat">
+                        <span class="material-symbols-outlined">favorite</span>
+                        Aşk
+                    </button>
+                    <button onclick="joinRoom('gundem')" class="room-btn chat">
+                        <span class="material-symbols-outlined">trending_up</span>
+                        Gündem
+                    </button>
+                    <button onclick="joinRoom('mizah')" class="room-btn chat">
+                        <span class="material-symbols-outlined">sentiment_very_satisfied</span>
+                        Mizah
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>💼 İş & Kariyer</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('is-ilanlari')" class="room-btn career">
+                        <span class="material-symbols-outlined">work</span>
+                        İş İlanları
+                    </button>
+                    <button onclick="joinRoom('girisimcilik')" class="room-btn career">
+                        <span class="material-symbols-outlined">rocket_launch</span>
+                        Girişimcilik
+                    </button>
+                    <button onclick="joinRoom('networking')" class="room-btn career">
+                        <span class="material-symbols-outlined">hub</span>
+                        Networking
+                    </button>
+                    <button onclick="joinRoom('kariyer-danisma')" class="room-btn career">
+                        <span class="material-symbols-outlined">psychology</span>
+                        Kariyer Danışma
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>🌍 Seyahat & Kültür</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('gezginler')" class="room-btn travel">
+                        <span class="material-symbols-outlined">flight</span>
+                        Gezginler
+                    </button>
+                    <button onclick="joinRoom('yemek')" class="room-btn travel">
+                        <span class="material-symbols-outlined">restaurant</span>
+                        Yemek Kültürü
+                    </button>
+                    <button onclick="joinRoom('fotograf')" class="room-btn travel">
+                        <span class="material-symbols-outlined">photo_camera</span>
+                        Fotoğrafçılık
+                    </button>
+                    <button onclick="joinRoom('kultur-sanat')" class="room-btn travel">
+                        <span class="material-symbols-outlined">palette</span>
+                        Kültür & Sanat
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>💪 Sağlık & Yaşam</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('saglikli-yasam')" class="room-btn health">
+                        <span class="material-symbols-outlined">health_and_safety</span>
+                        Sağlıklı Yaşam
+                    </button>
+                    <button onclick="joinRoom('psikoloji')" class="room-btn health">
+                        <span class="material-symbols-outlined">psychology_alt</span>
+                        Psikoloji
+                    </button>
+                    <button onclick="joinRoom('beslenme')" class="room-btn health">
+                        <span class="material-symbols-outlined">nutrition</span>
+                        Beslenme
+                    </button>
+                    <button onclick="joinRoom('meditasyon')" class="room-btn health">
+                        <span class="material-symbols-outlined">self_improvement</span>
+                        Meditasyon
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>💡 Teknoloji & Bilim</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('yapay-zeka')" class="room-btn tech">
+                        <span class="material-symbols-outlined">smart_toy</span>
+                        Yapay Zeka
+                    </button>
+                    <button onclick="joinRoom('blockchain')" class="room-btn tech">
+                        <span class="material-symbols-outlined">currency_bitcoin</span>
+                        Blockchain
+                    </button>
+                    <button onclick="joinRoom('mobil')" class="room-btn tech">
+                        <span class="material-symbols-outlined">smartphone</span>
+                        Mobil Teknoloji
+                    </button>
+                    <button onclick="joinRoom('bilim')" class="room-btn tech">
+                        <span class="material-symbols-outlined">science</span>
+                        Bilim
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>🎨 Sanat & El İşi</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('resim')" class="room-btn art">
+                        <span class="material-symbols-outlined">brush</span>
+                        Resim
+                    </button>
+                    <button onclick="joinRoom('el-sanatlari')" class="room-btn art">
+                        <span class="material-symbols-outlined">category</span>
+                        El Sanatları
+                    </button>
+                    <button onclick="joinRoom('heykel')" class="room-btn art">
+                        <span class="material-symbols-outlined">architecture</span>
+                        Heykel
+                    </button>
+                    <button onclick="joinRoom('tasarim')" class="room-btn art">
+                        <span class="material-symbols-outlined">design_services</span>
+                        Tasarım
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>🎵 Müzik & Performans</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('enstruman')" class="room-btn music">
+                        <span class="material-symbols-outlined">piano</span>
+                        Enstrüman
+                    </button>
+                    <button onclick="joinRoom('sarki-soyleme')" class="room-btn music">
+                        <span class="material-symbols-outlined">mic</span>
+                        Şarkı Söyleme
+                    </button>
+                    <button onclick="joinRoom('muzik-teorisi')" class="room-btn music">
+                        <span class="material-symbols-outlined">music_note</span>
+                        Müzik Teorisi
+                    </button>
+                    <button onclick="joinRoom('dans')" class="room-btn music">
+                        <span class="material-symbols-outlined">motion_photos_on</span>
+                        Dans
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>🌱 Doğa & Çevre</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('bahcecilik')" class="room-btn nature">
+                        <span class="material-symbols-outlined">grass</span>
+                        Bahçecilik
+                    </button>
+                    <button onclick="joinRoom('surdurulebilirlik')" class="room-btn nature">
+                        <span class="material-symbols-outlined">eco</span>
+                        Sürdürülebilirlik
+                    </button>
+                    <button onclick="joinRoom('doga-sporlari')" class="room-btn nature">
+                        <span class="material-symbols-outlined">landscape</span>
+                        Doğa Sporları
+                    </button>
+                    <button onclick="joinRoom('hayvan-dostlari')" class="room-btn nature">
+                        <span class="material-symbols-outlined">pets</span>
+                        Hayvan Dostları
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>📱 Sosyal Medya</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('influencer')" class="room-btn social">
+                        <span class="material-symbols-outlined">trending_up</span>
+                        Influencer
+                    </button>
+                    <button onclick="joinRoom('content-creation')" class="room-btn social">
+                        <span class="material-symbols-outlined">video_library</span>
+                        İçerik Üretimi
+                    </button>
+                    <button onclick="joinRoom('sosyal-pazarlama')" class="room-btn social">
+                        <span class="material-symbols-outlined">campaign</span>
+                        Sosyal Pazarlama
+                    </button>
+                    <button onclick="joinRoom('topluluk-yonetimi')" class="room-btn social">
+                        <span class="material-symbols-outlined">groups</span>
+                        Topluluk Yönetimi
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>🏠 Ev & Yaşam</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('ic-tasarim')" class="room-btn home">
+                        <span class="material-symbols-outlined">chair</span>
+                        İç Tasarım
+                    </button>
+                    <button onclick="joinRoom('yemek-tarifleri')" class="room-btn home">
+                        <span class="material-symbols-outlined">restaurant_menu</span>
+                        Yemek Tarifleri
+                    </button>
+                    <button onclick="joinRoom('ev-duzenlemesi')" class="room-btn home">
+                        <span class="material-symbols-outlined">home</span>
+                        Ev Düzenlemesi
+                    </button>
+                    <button onclick="joinRoom('kendin-yap')" class="room-btn home">
+                        <span class="material-symbols-outlined">handyman</span>
+                        Kendin Yap
+                    </button>
+                </div>
+            </div>
+
+            <div class="room-category">
+                <h3>💰 Finans & Ekonomi</h3>
+                <div class="room-buttons">
+                    <button onclick="joinRoom('yatirim')" class="room-btn finance">
+                        <span class="material-symbols-outlined">savings</span>
+                        Yatırım
+                    </button>
+                    <button onclick="joinRoom('kripto')" class="room-btn finance">
+                        <span class="material-symbols-outlined">currency_bitcoin</span>
+                        Kripto
+                    </button>
+                    <button onclick="joinRoom('borsa')" class="room-btn finance">
+                        <span class="material-symbols-outlined">show_chart</span>
+                        Borsa
+                    </button>
+                    <button onclick="joinRoom('finansal-okuryazarlik')" class="room-btn finance">
+                        <span class="material-symbols-outlined">account_balance</span>
+                        Finansal Okuryazarlık
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    hamburgerBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Menü dışı tıklamada kapat
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('nav')) {
+            navLinks.classList.remove('active');
+        }
+    });
+        // Firebase başlatma
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Kullanıcı arama fonksiyonu
+        async function sendMessage(senderId, receiverId, message) {
+            const chatId = senderId < receiverId ? senderId + receiverId : receiverId + senderId;
+            const messagesRef = db.collection("messages").doc(chatId).collection("messages");
+
+            try {
+                await messagesRef.add({
+                    text: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    senderId: senderId
+                });
+                alert("Mesaj gönderildi!");
+            } catch (error) {
+                console.error("Mesaj gönderme hatası:", error);
+            }
+        }
+
+        // Kullanıcı arama fonksiyonu ile "Mesaj Gönder" butonunu ekleme
+        async function searchUsers(query) {
+            const resultList = document.getElementById("resultList");
+            resultList.innerHTML = ""; // Önce sonuçları temizle
+
+            const queryLower = query.toLowerCase();
+            const snapshot = await db.collection("users").get();
+
+            if (!snapshot.empty) {
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    // Kullanıcı adı veya becerilerine göre arama
+                    if (user.name.toLowerCase().includes(queryLower) || user.skills.some(skill => skill.toLowerCase().includes(queryLower))) {
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+                            <strong>${user.name}</strong><br>
+                            Kullanıcı Adı: ${user.name}<br> 
+                            Beceriler: ${user.skills.join(", ")}<br>
+                            <a href="profil.html?id=${doc.id}">Profili Görüntüle</a>
+                            <button onclick="startChat('${doc.id}')">Mesaj Gönder</button> <!-- Mesaj gönder butonu -->
+                        `;
+                        resultList.appendChild(li);
+                    }
+                });
+            } else {
+                const li = document.createElement("li");
+                li.textContent = "Hiçbir sonuç bulunamadı.";
+                resultList.appendChild(li);
+            }
+        }
+
+        // Mesaj gönderecek kullanıcıyı seç
+        function startChat(receiverId) {
+            const currentUserId = "currentUserId";  // Giriş yapan kullanıcının ID'si
+
+            // Sohbet sayfasına yönlendir
+            window.location.href = `sohbetler.html?receiverId=${receiverId}&senderId=${currentUserId}`;
+        }
+
+        // Kullanıcı arama formunu dinle
+        document.getElementById("searchButton").addEventListener("click", () => {
+            const query = document.getElementById("searchInput").value.trim();
+            if (query) {
+                searchUsers(query);
+            } else {
+                alert("Lütfen bir arama terimi girin!");
+            }
+        });
+
+        // Sayfa yüklendiğinde oturum kontrolü yap
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Oda katılım fonksiyonunu güncelle
+        function joinRoom(roomName) {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert('Lütfen önce giriş yapın!');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Kullanıcıyı odaya ekle
+            db.collection('rooms').doc(roomName).collection('users').doc(user.uid).set({
+                userName: user.displayName || 'Anonim',
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                // Sohbet odasına yönlendir
+                window.location.href = `chatroom.html?room=${roomName}`;
+            }).catch((error) => {
+                console.error('Odaya katılma hatası:', error);
+                alert('Odaya katılırken bir hata oluştu!');
+            });
+        }
+
+        // Çıkış yapma işlemi
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            firebase.auth().signOut()
+                .then(() => {
+                    window.location.href = 'login.html';
+                })
+                .catch((error) => {
+                    console.error('Çıkış hatası:', error);
+                });
+        });
+    </script>
+
+    <style>
+    .chat-rooms {
+        padding: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .room-category {
+        margin-bottom: 2rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .room-category h3 {
+        margin-bottom: 1rem;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .room-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .room-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .room-btn span {
+        font-size: 20px;
+    }
+
+    /* Oyun odaları */
+    .room-btn.game {
+        background: linear-gradient(135deg, #6b46c1, #805ad5);
+    }
+    .room-btn.game:hover {
+        background: linear-gradient(135deg, #805ad5, #6b46c1);
+        transform: translateY(-2px);
+    }
+
+    /* Eğitim odaları */
+    .room-btn.edu {
+        background: linear-gradient(135deg, #2b6cb0, #4299e1);
+    }
+    .room-btn.edu:hover {
+        background: linear-gradient(135deg, #4299e1, #2b6cb0);
+        transform: translateY(-2px);
+    }
+
+    /* Hobi odaları */
+    .room-btn.hobby {
+        background: linear-gradient(135deg, #2f855a, #38a169);
+    }
+    .room-btn.hobby:hover {
+        background: linear-gradient(135deg, #38a169, #2f855a);
+        transform: translateY(-2px);
+    }
+
+    /* Sohbet odaları */
+    .room-btn.chat {
+        background: linear-gradient(135deg, #c53030, #e53e3e);
+    }
+    .room-btn.chat:hover {
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+        transform: translateY(-2px);
+    }
+
+    /* İş & Kariyer odaları */
+    .room-btn.career {
+        background: linear-gradient(135deg, #7B1FA2, #9C27B0);
+    }
+    .room-btn.career:hover {
+        background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        transform: translateY(-2px);
+    }
+
+    /* Seyahat & Kültür odaları */
+    .room-btn.travel {
+        background: linear-gradient(135deg, #F57C00, #FF9800);
+    }
+    .room-btn.travel:hover {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+        transform: translateY(-2px);
+    }
+
+    /* Sağlık & Yaşam odaları */
+    .room-btn.health {
+        background: linear-gradient(135deg, #00796B, #009688);
+    }
+    .room-btn.health:hover {
+        background: linear-gradient(135deg, #009688, #00796B);
+        transform: translateY(-2px);
+    }
+
+    /* Teknoloji & Bilim odaları */
+    .room-btn.tech {
+        background: linear-gradient(135deg, #455A64, #607D8B);
+    }
+    .room-btn.tech:hover {
+        background: linear-gradient(135deg, #607D8B, #455A64);
+        transform: translateY(-2px);
+    }
+
+    /* Sanat & El İşi odaları */
+    .room-btn.art {
+        background: linear-gradient(135deg, #D81B60, #E91E63);
+    }
+    .room-btn.art:hover {
+        background: linear-gradient(135deg, #E91E63, #D81B60);
+        transform: translateY(-2px);
+    }
+
+    /* Müzik & Performans odaları */
+    .room-btn.music {
+        background: linear-gradient(135deg, #1E88E5, #2196F3);
+    }
+    .room-btn.music:hover {
+        background: linear-gradient(135deg, #2196F3, #1E88E5);
+        transform: translateY(-2px);
+    }
+
+    /* Doğa & Çevre odaları */
+    .room-btn.nature {
+        background: linear-gradient(135deg, #43A047, #4CAF50);
+    }
+    .room-btn.nature:hover {
+        background: linear-gradient(135deg, #4CAF50, #43A047);
+        transform: translateY(-2px);
+    }
+
+    /* Sosyal Medya odaları */
+    .room-btn.social {
+        background: linear-gradient(135deg, #FB8C00, #FF9800);
+    }
+    .room-btn.social:hover {
+        background: linear-gradient(135deg, #FF9800, #FB8C00);
+        transform: translateY(-2px);
+    }
+
+    /* Ev & Yaşam odaları */
+    .room-btn.home {
+        background: linear-gradient(135deg, #8E24AA, #9C27B0);
+    }
+    .room-btn.home:hover {
+        background: linear-gradient(135deg, #9C27B0, #8E24AA);
+        transform: translateY(-2px);
+    }
+
+    /* Finans & Ekonomi odaları */
+    .room-btn.finance {
+        background: linear-gradient(135deg, #00897B, #009688);
+    }
+    .room-btn.finance:hover {
+        background: linear-gradient(135deg, #009688, #00897B);
+        transform: translateY(-2px);
+    }
+
+    /* Mobil uyumluluk */
+    @media (max-width: 768px) {
+        .chat-rooms {
+            padding: 1rem;
+        }
+        
+        .room-buttons {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+    </style>
+</body>
+</html>

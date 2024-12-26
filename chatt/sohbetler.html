@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <title>Sohbetler</title>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+    <nav>
+        <div class="icerik">
+            <h2>Trigoter</h2>
+            <ul>
+                <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Kullanıcı Ara</a></li>
+                <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+            </ul>
+            <button class="Btn" id="logoutButton">
+                <div class="sign"><span class="material-symbols-outlined">logout</span></div>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="chat">
+            <h2>Sohbet</h2>
+            <div id="messages"></div>
+            <form id="messageForm">
+                <input type="text" id="messageInput" placeholder="Mesajınızı yazın..." />
+                <button type="submit" id="sendMessageButton">Gönder</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+
+        // Firebase başlatma
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // URL parametrelerini al
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        const receiverId = getQueryParam('receiverId');
+        const senderId = getQueryParam('senderId');
+
+        if (!receiverId || !senderId) {
+            console.error("Receiver veya Sender ID eksik.");
+            alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+            window.location.href = "index.html"; // Ana sayfaya yönlendirme
+        }
+
+        const messagesRef = db.collection("messages").doc(senderId < receiverId ? senderId + receiverId : receiverId + senderId).collection("messages");
+
+        // Mesajları yükleme
+        async function loadMessages() {
+            const messagesContainer = document.getElementById("messages");
+            messagesContainer.innerHTML = ''; // Önce temizle
+
+            const snapshot = await messagesRef.orderBy("timestamp").get();
+            snapshot.forEach(doc => {
+                const message = doc.data();
+                const messageElement = document.createElement("div");
+                messageElement.textContent = message.text;
+                messagesContainer.appendChild(messageElement);
+            });
+        }
+        document.getElementById("logoutButton").addEventListener("click", function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // Çıkış yaptıktan sonra giriş sayfasına yönlendir
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+            });
+        });
+        // Mesaj gönderme
+        async function sendMessage(messageText) {
+            try {
+                await messagesRef.add({
+                    text: messageText,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    senderId: senderId
+                });
+                loadMessages();
+            } catch (error) {
+                console.error("Mesaj gönderme hatası:", error);
+            }
+        }
+        document.getElementById("logoutButton").addEventListener("click", function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // Çıkış yaptıktan sonra giriş sayfasına yönlendir
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+            });
+        });
+        // Mesaj gönder butonunu dinle
+        document.getElementById("messageForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const messageInput = document.getElementById("messageInput");
+            const messageText = messageInput.value.trim();
+            if (messageText) {
+                sendMessage(messageText);
+                messageInput.value = '';
+            }
+        });
+
+        loadMessages();
+    </script>
+</body>
+</html>

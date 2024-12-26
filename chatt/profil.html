@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <title>Profil Sayfası</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.js"></script>
+</head>
+<body>
+    <nav>
+        <div class="icerik">
+            <h2>Trigoter</h2>
+            <button class="hamburger" id="hamburgerBtn">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                    <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Odalar</a></li>
+                    <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+                    <li><button class="Btn" id="logoutButton">
+                        <span class="material-symbols-outlined">logout</span> Çıkış
+                    </button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img id="avatarPreview" src="default-avatar.png" alt="Profil Fotoğrafı">
+                    <label for="avatarInput" class="avatar-upload">
+                        <span class="material-symbols-outlined">add_a_photo</span>
+                        <input type="file" id="avatarInput" accept="image/*" hidden>
+                    </label>
+                </div>
+                <h2>Profil Bilgileri</h2>
+            </div>
+
+            <form id="profileForm" class="profile-form">
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="material-symbols-outlined">person</span>
+                        <input type="text" id="name" placeholder="İsminiz" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="material-symbols-outlined">psychology</span>
+                        <input type="text" id="skills" placeholder="Becerileriniz (virgülle ayırın)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="material-symbols-outlined">description</span>
+                        <textarea id="bio" placeholder="Kendinizi tanıtın..." rows="4"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="save-button" id="saveProfile">
+                    <span class="material-symbols-outlined">save</span>
+                    <span class="button-text">Kaydet</span>
+                </button>
+            </form>
+
+            <div class="profile-preview">
+                <h3>Profil Önizlemesi</h3>
+                <div class="preview-content" id="profilePreview">
+                    <div class="preview-item">
+                        <strong>İsim:</strong>
+                        <span id="previewName">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <strong>Beceriler:</strong>
+                        <span id="previewSkills">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <strong>Hakkında:</strong>
+                        <span id="previewBio">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    hamburgerBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Menü dışı tıklamada kapat
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('nav')) {
+            navLinks.classList.remove('active');
+        }
+    });
+        // Firebase başlatma
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Kullanıcı giriş yapmadıysa giriş sayfasına yönlendir
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadProfile(user.uid); // Kullanıcı ID'si ile profili yükle
+            } else {
+                window.location.href = "login.html"; // Giriş sayfasına yönlendir
+            }
+        });
+
+        // Firebase Authentication ile kullanıcıyı oturum açma
+        async function signIn() {
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword("user@example.com", "password");
+                const user = userCredential.user;
+                console.log("Giriş başarılı", user);
+            } catch (error) {
+                console.error("Giriş hatası", error);
+            }
+        }
+
+        // Profil bilgilerini Firestore'dan yükleme
+        async function loadProfile(userId) {
+            const userDoc = await db.collection("users").doc(userId).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                document.getElementById("name").value = userData.name || "";
+                document.getElementById("skills").value = userData.skills ? userData.skills.join(", ") : "";
+                document.getElementById("bio").value = userData.bio || "";
+                
+                // Profil fotoğrafını göster
+                if (userData.photoURL) {
+                    document.getElementById('avatarPreview').src = userData.photoURL;
+                }
+                
+                updateProfilePreview(userData.name, userData.skills, userData.bio);
+            } else {
+                console.log("Kullanıcı bulunamadı.");
+            }
+        }
+
+        // Profil kaydetme fonksiyonu
+        async function saveProfile(userId) {
+            const saveButton = document.getElementById('saveProfile');
+            const originalButtonContent = saveButton.innerHTML; // Orijinal içeriği sakla
+
+            try {
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span> Kaydediliyor...';
+
+                const name = document.getElementById("name").value;
+                const skills = document.getElementById("skills").value.split(",").map(skill => skill.trim());
+                const bio = document.getElementById("bio").value;
+
+                await db.collection("users").doc(userId).update({
+                    name: name,
+                    skills: skills,
+                    bio: bio
+                });
+
+                updateProfilePreview(name, skills, bio);
+                showToast('Profil başarıyla güncellendi!');
+            } catch (error) {
+                console.error('Profil güncelleme hatası:', error);
+                showToast('Profil güncellenirken bir hata oluştu', 'error');
+            } finally {
+                // Butonu orijinal haline döndür
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalButtonContent;
+            }
+        }
+
+        // Profil önizlemesini güncelleme
+        function updateProfilePreview(name, skills, bio) {
+            document.getElementById("previewName").textContent = name || "-";
+            document.getElementById("previewSkills").textContent = skills && skills.length ? skills.join(", ") : "-";
+            document.getElementById("previewBio").textContent = bio || "-";
+        }
+
+        // Kaydet butonuna tıklandığında profili kaydet
+        document.getElementById("saveProfile").addEventListener("click", function() {
+            const user = auth.currentUser; // Giriş yapan kullanıcıyı al
+            if (user) {
+                saveProfile(user.uid); // Giriş yapan kullanıcı ID'siyle profili kaydet
+            } else {
+                console.log("Kullanıcı giriş yapmamış.");
+            }
+        });
+
+        // Çıkış yapma fonksiyonu
+        document.getElementById("logoutButton").addEventListener("click", function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // Çıkış yaptıktan sonra giriş sayfasına yönlendir
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+            });
+        });
+
+        // Resmi sıkıştıran fonksiyon
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 500; // Maximum genişlik
+                        const MAX_HEIGHT = 500; // Maximum yükseklik
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // 0.7 kalite oranı
+                    };
+                };
+            });
+        }
+
+        // Profil fotoğrafı yükleme işlemini güncelle
+        document.getElementById('avatarInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    // Önce resmi sıkıştır
+                    const compressedImage = await compressImage(file);
+                    
+                    // Sıkıştırılmış resmi Firestore'a kaydet
+                    await db.collection("users").doc(auth.currentUser.uid).update({
+                        photoURL: compressedImage
+                    });
+                    
+                    document.getElementById('avatarPreview').src = compressedImage;
+                    showToast('Profil fotoğrafı güncellendi!');
+                } catch (error) {
+                    console.error('Fotoğraf yükleme hatası:', error);
+                    showToast('Fotoğraf yüklenirken bir hata oluştu', 'error');
+                }
+            }
+        });
+
+        // Toast mesajı gösterme fonksiyonu
+        function showToast(message, type = 'success') {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: 'right',
+                backgroundColor: type === 'success' ? "#28a745" : "#dc3545"
+            }).showToast();
+        }
+    </script>
+</body>
+</html>

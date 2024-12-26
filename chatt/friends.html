@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <title>Trigoter - Arkadaşlar</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .friend-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            gap: 15px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .user-avatar {
+            position: relative;
+            min-width: 50px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0; /* Önemli: Taşmayı önler */
+            overflow: hidden;
+        }
+
+        .user-info h3 {
+            margin: 0;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-email {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .friend-actions button {
+            padding: 8px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .friend-actions button:hover {
+            background: #e4e6e9;
+        }
+
+        .message-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            background: #ff4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .friend-request {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .friend-request .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-info button {
+            margin-right: 10px;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .request-info button:first-of-type {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .reject-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .no-requests {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .sent-requests {
+            margin: 20px 0;
+        }
+
+        .cancel {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .cancel:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <div class="icerik">
+            <h2>Trigoter</h2>
+            <button class="hamburger" id="hamburgerBtn">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                    <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Odalar</a></li>
+                    <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+                    <li><button class="Btn" id="logoutButton">
+                        <span class="material-symbols-outlined">logout</span> Çıkış
+                    </button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="friends-container">
+        <!-- Arkadaş Arama -->
+        <section class="search-section">
+            <h2>Arkadaş Ara</h2>
+            <div class="search-box">
+                <input type="text" id="friendSearch" placeholder="Kullanıcı adı ile ara...">
+                <button id="searchButton">
+                    <span class="material-symbols-outlined">search</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Arkadaş İstekleri -->
+        <section class="friend-requests">
+            <h2>Arkadaşlık İstekleri</h2>
+            <div id="friendRequests" class="requests-container">
+                <!-- JavaScript ile doldurulacak -->
+            </div>
+        </section>
+        
+        <section class="sent-requests"></section>
+            <h2>Gönderilen İstekler</h2>
+            <div id="sentRequests" class="requests-container">
+                <!-- JavaScript ile doldurulacak -->
+            </div>
+        </section>
+
+        <!-- Arkadaş Listesi -->
+        <section class="friends-list">
+            <h2>Arkadaşlarım</h2>
+            <div id="friendsList" class="friends-grid">
+                <!-- JavaScript ile doldurulacak -->
+            </div>
+        </section>
+
+        <!-- Önerilen Kullanıcılar -->
+        <section class="suggested-users">
+            <h2>Önerilen Kullanıcılar</h2>
+            <div id="suggestedUsers" class="users-grid">
+                <!-- JavaScript ile doldurulacak -->
+            </div>
+        </section>
+
+        <!-- Gönderilen İstekler -->
+        
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            where, 
+            getDocs,
+            addDoc,
+            deleteDoc,
+            updateDoc,
+            doc,
+            onSnapshot,
+            limit,
+            arrayUnion,
+            arrayRemove,
+            getDoc,
+            setDoc,
+            serverTimestamp,
+            orderBy
+        } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    hamburgerBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Menü dışı tıklamada kapat
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('nav')) {
+            navLinks.classList.remove('active');
+        }
+    });
+        // Kullanıcı kontrolü
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+            loadFriendRequests();
+            loadFriends();
+            loadSuggestedUsers();
+        });
+
+        // Arkadaş arama
+        document.getElementById('friendSearch').addEventListener('input', async (e) => {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            const searchResults = document.createElement('div');
+            searchResults.className = 'search-results';
+
+            // Önceki sonuçları temizle
+            const oldResults = document.querySelector('.search-results');
+            if (oldResults) oldResults.remove();
+
+            // Eğer arama terimi boşsa sonuçları gösterme
+            if (!searchTerm) {
+                return;
+            }
+
+            try {
+                const usersRef = collection(db, 'users');
+                const querySnapshot = await getDocs(usersRef);
+                
+                // Mevcut kullanıcının arkadaş listesini al
+                const currentUserDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                const currentUserData = currentUserDoc.data();
+                const currentFriends = currentUserData?.friends || [];
+
+                // Bekleyen arkadaşlık isteklerini al
+                const pendingRequestsSnapshot = await getDocs(query(
+                    collection(db, 'friendRequests'),
+                    where('from', '==', auth.currentUser.uid),
+                    where('status', '==', 'pending')
+                ));
+                const pendingRequestIds = pendingRequestsSnapshot.docs.map(doc => doc.data().to);
+
+                let matchCount = 0;
+                const MAX_RESULTS = 5;
+
+                querySnapshot.forEach((doc) => {
+                    if (matchCount >= MAX_RESULTS) return;
+
+                    const userData = doc.data();
+                    const displayName = getUserDisplayName(userData).toLowerCase();
+                    
+                    if (displayName.includes(searchTerm) && 
+                        doc.id !== auth.currentUser.uid && 
+                        !currentFriends.includes(doc.id) &&
+                        !pendingRequestIds.includes(doc.id)) {
+                        
+                        matchCount++;
+                        const userCard = document.createElement('div');
+                        userCard.className = 'user-card';
+
+                        const defaultAvatar = `https://api.dicebear.com/6.x/avataaars/svg?seed=${doc.id}`;
+                        const profileImage = userData.photoURL || defaultAvatar;
+                        const displayNameText = getUserDisplayName(userData);
+
+                        userCard.innerHTML = `
+                            <div class="user-avatar">
+                                <img src="${profileImage}" 
+                                     alt="${displayNameText}"
+                                     onerror="this.src='https://api.dicebear.com/6.x/avataaars/svg?seed=fallback'">
+                            </div>
+                            <div class="user-info">
+                                <h3>${displayNameText}</h3>
+                                ${userData.status ? `<p class="user-status">${userData.status}</p>` : ''}
+                            </div>
+                            <button onclick="sendFriendRequest('${doc.id}')">
+                                <span class="material-symbols-outlined">person_add</span>
+                            </button>
+                        `;
+                        searchResults.appendChild(userCard);
+                    }
+                });
+
+                // Sonuç bulunamadıysa bilgi mesajı göster
+                if (matchCount === 0) {
+                    searchResults.innerHTML = '<p class="no-results">Kullanıcı bulunamadı</p>';
+                }
+                
+                document.querySelector('.search-section').appendChild(searchResults);
+
+            } catch (error) {
+                console.error('Arama hatası:', error);
+            }
+        });
+
+        // Arkadaş isteği gönderme
+        window.sendFriendRequest = async function(targetUserId) {
+            try {
+                // Önce mevcut istekleri kontrol et
+                const requestsRef = collection(db, 'friendRequests');
+                const q = query(requestsRef, 
+                    where('from', '==', auth.currentUser.uid),
+                    where('to', '==', targetUserId),
+                    where('status', '==', 'pending')
+                );
+                
+                const existingRequests = await getDocs(q);
+                
+                // Eğer zaten istek varsa, yeni istek gönderme
+                if (!existingRequests.empty) {
+                    const notification = document.createElement('div');
+                    notification.className = 'notification warning';
+                    notification.innerHTML = `
+                        <span class="material-symbols-outlined">info</span>
+                        <span>Bu kullanıcıya zaten istek gönderilmiş!</span>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                    return;
+                }
+
+                // Yeni isteği gönder
+                await addDoc(collection(db, 'friendRequests'), {
+                    from: auth.currentUser.uid,
+                    to: targetUserId,
+                    status: 'pending',
+                    timestamp: new Date()
+                });
+
+                // Başarı bildirimi göster
+                const notification = document.createElement('div');
+                notification.className = 'notification success';
+                notification.innerHTML = `
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span>Arkadaşlık isteği gönderildi!</span>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+
+                // İstek gönderilen butonu devre dışı bırak
+                const button = document.querySelector(`button[onclick="sendFriendRequest('${targetUserId}')"]`);
+                if (button) {
+                    button.disabled = true;
+                    button.innerHTML = `
+                        <span class="material-symbols-outlined">pending</span>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('İstek gönderme hatası:', error);
+                const notification = document.createElement('div');
+                notification.className = 'notification error';
+                notification.innerHTML = `
+                    <span class="material-symbols-outlined">error</span>
+                    <span>İstek gönderilemedi: ${error.message}</span>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        };
+
+        // Arkadaş isteklerini yükleme
+        async function loadFriendRequests() {
+            try {
+                const requestsRef = collection(db, 'friendRequests');
+                const q = query(requestsRef, 
+                    where('to', '==', auth.currentUser.uid), 
+                    where('status', '==', 'pending')
+                );
+                
+                // Önceki listener'ı temizle
+                if (window.friendRequestsUnsubscribe) {
+                    window.friendRequestsUnsubscribe();
+                }
+                
+                // Yeni listener ekle
+                window.friendRequestsUnsubscribe = onSnapshot(q, async (snapshot) => {
+                    const container = document.getElementById('friendRequests');
+                    container.innerHTML = '';
+
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p class="no-requests">Bekleyen istek yok</p>';
+                        return;
+                    }
+
+                    for (const requestDoc of snapshot.docs) {
+                        const request = requestDoc.data();
+                        
+                        // Gönderen kullanıcının bilgilerini doğrudan dökümanından al
+                        const senderDoc = await getDoc(doc(db, 'users', request.from));
+                        const senderData = senderDoc.data();
+                        
+                        if (!senderData) continue; // Kullanıcı bulunamadıysa atla
+
+                        const displayName = getUserDisplayName(senderData);
+                        const defaultAvatar = `https://api.dicebear.com/6.x/avataaars/svg?seed=${request.from}`;
+                        const profileImage = senderData.photoURL || defaultAvatar;
+
+                        const requestCard = document.createElement('div');
+                        requestCard.className = 'request-card';
+                        requestCard.innerHTML = `
+                            <div class="user-avatar">
+                                <img src="${profileImage}" 
+                                    alt="${displayName}" 
+                                    onerror="this.src='${defaultAvatar}'"
+                                >
+                            </div>
+                            <div class="user-info">
+                                <h3>${displayName}</h3>
+                                ${senderData.status ? `<p class="user-status">${senderData.status}</p>` : ''}
+                            </div>
+                            <div class="request-buttons">
+                                <button onclick="acceptFriendRequest('${requestDoc.id}', '${request.from}')" class="accept">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                                <button onclick="rejectFriendRequest('${requestDoc.id}')" class="reject">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(requestCard);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Arkadaş istekleri yükleme hatası:', error);
+            }
+        }
+
+        // Sayfadan ayrılırken listener'ı temizle
+        window.addEventListener('unload', () => {
+            if (window.friendRequestsUnsubscribe) {
+                window.friendRequestsUnsubscribe();
+            }
+        });
+
+        // Arkadaş listesini realtime olarak dinle
+        function listenToFriends() {
+            if (!auth.currentUser) return;
+
+            const userRef = doc(db, 'users', auth.currentUser.uid);
+            
+            // Realtime listener ekle
+            onSnapshot(userRef, async (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userData = docSnapshot.data();
+                    await loadFriends(userData.friends || []);
+                }
+            });
+        }
+
+        // Arkadaş listesini yükleme fonksiyonunu güncelle
+        async function loadFriends(friendIds = []) {
+            try {
+                const container = document.getElementById('friendsList');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (friendIds.length === 0) {
+                    container.innerHTML = '<p class="no-friends">Henüz arkadaşınız yok</p>';
+                    return;
+                }
+
+                // Her bir arkadaş için
+                friendIds.forEach(async (friendId) => {
+                    // Kullanıcı dokümanını doğrudan ID ile al
+                    const userDoc = await getDoc(doc(db, 'users', friendId));
+                    const friendData = userDoc.data();
+
+                    if (!friendData) return;
+
+                    // Sohbet odası ID'sini oluştur
+                    const roomId = [auth.currentUser.uid, friendId].sort().join('_');
+                    const messagesRef = collection(db, 'chats', roomId, 'messages');
+                    
+                    // Son mesajı dinle
+                    onSnapshot(
+                        query(messagesRef, orderBy('timestamp', 'desc'), limit(1)),
+                        (snapshot) => {
+                            const lastMessage = snapshot.docs[0]?.data();
+                            const hasUnreadMessage = lastMessage && 
+                                                  lastMessage.from === friendId && 
+                                                  !lastMessage.read;
+
+                            createFriendCard(friendData, friendId, hasUnreadMessage);
+                        }
+                    );
+                });
+
+            } catch (error) {
+                console.error('Arkadaş listesi yükleme hatası:', error);
+            }
+        }
+
+        // Kullanıcı adı alma yardımcı fonksiyonu
+        function getUserDisplayName(userData) {
+            return userData.displayName || // Profilde ayarlanan ad
+                   userData.name ||       // Profilde ayarlanan alternatif ad
+                   userData.username ||   // Kayıt olurken kullanılan ad
+                   userData.email?.split('@')[0] || // Email'den türetilen ad
+                   'İsimsiz Kullanıcı';  // Hiçbiri yoksa varsayılan
+        }
+
+        // Arkadaş kartı oluşturma fonksiyonu
+        function createFriendCard(friendData, friendId, hasUnreadMessage) {
+            const container = document.getElementById('friendsList');
+            let friendCard = document.getElementById(`friend-${friendId}`);
+
+            const defaultAvatar = `https://api.dicebear.com/6.x/avataaars/svg?seed=${friendId}`;
+            const profileImage = friendData.photoURL || defaultAvatar;
+            const displayName = getUserDisplayName(friendData);
+
+            if (!friendCard) {
+                friendCard = document.createElement('div');
+                friendCard.id = `friend-${friendId}`;
+                friendCard.className = 'friend-card';
+                container.appendChild(friendCard);
+            }
+
+            friendCard.innerHTML = `
+                <div class="user-avatar">
+                    <img src="${profileImage}" 
+                         alt="${displayName}" 
+                         onerror="this.src='${defaultAvatar}'"
+                    >
+                    ${hasUnreadMessage ? '<span class="message-badge"></span>' : ''}
+                </div>
+                <div class="user-info">
+                    <h3>${displayName}</h3>
+                    ${friendData.status ? `<p class="user-status">${friendData.status}</p>` : ''}
+                </div>
+                <div class="friend-actions">
+                    <button onclick="startChat('${friendId}')" class="chat-btn" title="Sohbet Başlat">
+                        <span class="material-symbols-outlined">chat</span>
+                    </button>
+                    <button onclick="removeFriend('${friendId}')" class="remove-btn" title="Arkadaşı Sil">
+                        <span class="material-symbols-outlined">person_remove</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Sohbet başlatma fonksiyonu
+        window.startChat = async function(friendId) {
+            try {
+                // Sohbet odası ID'sini oluştur (küçük ID her zaman önce)
+                const roomId = [auth.currentUser.uid, friendId].sort().join('_');
+                
+                // Sohbet odasını kontrol et veya oluştur
+                const chatRef = doc(db, 'chats', roomId);
+                const chatDoc = await getDoc(chatRef);
+                
+                if (!chatDoc.exists()) {
+                    // Yeni sohbet odası oluştur
+                    await setDoc(chatRef, {
+                        participants: [auth.currentUser.uid, friendId],
+                        lastMessage: null,
+                        lastMessageTime: null,
+                        createdAt: serverTimestamp()
+                    });
+                }
+
+                // Sohbet sayfasına yönlendir
+                window.location.href = `mesajlasma.html?room=${roomId}&friend=${friendId}`;
+
+            } catch (error) {
+                console.error('Sohbet başlatma hatası:', error);
+                const notification = document.createElement('div');
+                notification.className = 'notification error';
+                notification.innerHTML = `
+                    <span class="material-symbols-outlined">error</span>
+                    <span>Sohbet başlatılamadı: ${error.message}</span>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        };
+
+        // Arkadaş silme fonksiyonu
+        window.removeFriend = async function(friendId) {
+            if (confirm('Bu arkadaşı silmek istediğinizden emin misiniz?')) {
+                try {
+                    const currentUserRef = doc(db, 'users', auth.currentUser.uid);
+                    const friendRef = doc(db, 'users', friendId);
+
+                    // Her iki kullanıcının listesinden de sil
+                    await updateDoc(currentUserRef, {
+                        friends: arrayRemove(friendId)
+                    });
+
+                    await updateDoc(friendRef, {
+                        friends: arrayRemove(auth.currentUser.uid)
+                    });
+
+                    alert('Arkadaş başarıyla silindi');
+                    loadFriends(); // Listeyi yenile
+                    loadSuggestedUsers(); // Önerilen kullanıcıları yenile
+                } catch (error) {
+                    console.error('Arkadaş silme hatası:', error);
+                    alert('Arkadaş silinemedi: ' + error.message);
+                }
+            }
+        };
+
+        // Önerilen kullanıcıları yükleme fonksiyonu
+        async function loadSuggestedUsers() {
+            if (!auth.currentUser) return;
+
+            try {
+                const currentUserDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', auth.currentUser.uid)));
+                const currentUserData = currentUserDoc.docs[0]?.data();
+                const currentFriends = currentUserData?.friends || [];
+
+                // Tüm kullanıcıları getir (limit kaldırıldı)
+                const usersRef = collection(db, 'users');
+                const querySnapshot = await getDocs(usersRef);
+
+                const container = document.getElementById('suggestedUsers');
+                container.innerHTML = '';
+
+                const suggestedUsers = [];
+                
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    // Sadece kendisi değilse ve arkadaşı değilse listeye ekle
+                    if (doc.id !== auth.currentUser.uid && !currentFriends.includes(doc.id)) {
+                        suggestedUsers.push({
+                            id: doc.id,
+                            ...userData
+                        });
+                    }
+                });
+
+                // Tüm kullanıcıları göster (slice kaldırıldı)
+                suggestedUsers.forEach((user) => {
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card';
+                    
+                    const profileImage = user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.id}`;
+                    
+                    userCard.innerHTML = `
+                        <div class="user-avatar">
+                            <img src="${profileImage}" 
+                                 alt="${user.username || 'Kullanıcı'}" 
+                                 onerror="this.src='https://api.dicebear.com/6.x/avataaars/svg?seed=fallback'">
+                        </div>
+                        <div class="user-info">
+                            <h3>${user.displayName || user.username || 'İsimsiz Kullanıcı'}</h3>
+                            ${user.status ? `<p class="user-status">${user.status}</p>` : ''}
+                        </div>
+                        <button onclick="sendFriendRequest('${user.id}')">
+                            <span class="material-symbols-outlined">person_add</span>
+                        </button>
+                    `;
+                    container.appendChild(userCard);
+                });
+
+                if (suggestedUsers.length === 0) {
+                    container.innerHTML = '<p>Şu anda önerilecek kullanıcı bulunmuyor.</p>';
+                }
+
+            } catch (error) {
+                console.error('Önerilen kullanıcıları yükleme hatası:', error);
+            }
+        }
+
+        // Auth state değiştiğinde realtime listener'ı başlat
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                listenToFriends(); // Realtime listener'ı başlat
+                loadFriendRequests();
+                loadSentRequests(); // Yeni eklenen
+                loadSuggestedUsers();
+            }
+        });
+
+        // Arkadaş isteğini kabul etme fonksiyonunu güncelle
+        window.acceptFriendRequest = async function(requestId, friendId) {
+            try {
+                console.log('İstek kabul ediliyor...', requestId, friendId);
+
+                // İsteği sil
+                const requestRef = doc(db, 'friendRequests', requestId);
+                await deleteDoc(requestRef);
+
+                // Kullanıcı referanslarını al
+                const currentUserRef = doc(db, 'users', auth.currentUser.uid);
+                const friendRef = doc(db, 'users', friendId);
+
+                // Her iki kullanıcının friends listesini güncelle
+                await updateDoc(currentUserRef, {
+                    friends: arrayUnion(friendId)
+                });
+
+                await updateDoc(friendRef, {
+                    friends: arrayUnion(auth.currentUser.uid)
+                });
+
+                // Önerilen kullanıcıları güncelle
+                loadSuggestedUsers();
+
+                // Başarı bildirimi göster
+                const notification = document.createElement('div');
+                notification.className = 'notification success';
+                notification.innerHTML = `
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span>Arkadaşlık isteği kabul edildi!</span>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+
+            } catch (error) {
+                console.error('İstek kabul hatası:', error);
+                const notification = document.createElement('div');
+                notification.className = 'notification error';
+                notification.innerHTML = `
+                    <span class="material-symbols-outlined">error</span>
+                    <span>İstek kabul edilemedi: ${error.message}</span>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        };
+
+        // Önerilen kullanıcı kartı oluşturma fonksiyonu
+        function createSuggestedUserCard(userData, userId) {
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            
+            const defaultAvatar = `https://api.dicebear.com/6.x/avataaars/svg?seed=${userId}`;
+            const profileImage = userData.photoURL || defaultAvatar;
+            const displayName = getUserDisplayName(userData);
+            
+            userCard.innerHTML = `
+                <div class="user-avatar">
+                    <img src="${profileImage}" 
+                         alt="${displayName}" 
+                         onerror="this.src='${defaultAvatar}'"
+                    >
+                </div>
+                <div class="user-info">
+                    <h3>${displayName}</h3>
+                    ${userData.status ? `<p class="user-status">${userData.status}</p>` : ''}
+                </div>
+                <button onclick="sendFriendRequest('${userId}')">
+                    <span class="material-symbols-outlined">person_add</span>
+                </button>
+            `;
+            return userCard;
+        }
+
+        // Arama sonuçları için kullanıcı kartı oluşturma
+        function createSearchResultCard(userData, userId) {
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+
+            const defaultAvatar = `https://api.dicebear.com/6.x/avataaars/svg?seed=${userId}`;
+            const profileImage = userData.photoURL || defaultAvatar;
+            const displayName = getUserDisplayName(userData);
+
+            userCard.innerHTML = `
+                <div class="user-avatar">
+                    <img src="${profileImage}" 
+                         alt="${displayName}"
+                         onerror="this.src='${defaultAvatar}'"
+                    >
+                </div>
+                <div class="user-info">
+                    <h3>${displayName}</h3>
+                    ${userData.status ? `<p class="user-status">${userData.status}</p>` : ''}
+                </div>
+                <button onclick="sendFriendRequest('${userId}')">
+                    <span class="material-symbols-outlined">person_add</span>
+                </button>
+            `;
+            return userCard;
+        }
+
+        // Gelen arkadaşlık isteklerini dinle
+        function listenToFriendRequests() {
+            const currentUser = auth.currentUser;
+            if (!currentUser) return;
+
+            const requestsRef = collection(db, 'friendRequests');
+            const q = query(requestsRef, 
+                where('receiverId', '==', currentUser.uid),
+                where('status', '==', 'pending')
+            );
+
+            onSnapshot(q, (snapshot) => {
+                const requestsContainer = document.getElementById('friendRequests');
+                requestsContainer.innerHTML = ''; // Mevcut istekleri temizle
+
+                snapshot.forEach((doc) => {
+                    const request = doc.data();
+                    const requestElement = document.createElement('div');
+                    requestElement.className = 'friend-request';
+                    requestElement.innerHTML = `
+                        <img src="${request.senderPhoto || getDefaultAvatar(request.senderId)}" alt="Profil" class="profile-pic">
+                        <div class="request-info">
+                            <p>${request.senderName}</p>
+                            <button onclick="acceptFriendRequest('${doc.id}', '${request.senderId}')">Kabul Et</button>
+                            <button onclick="rejectFriendRequest('${doc.id}')" class="reject-btn">Reddet</button>
+                        </div>
+                    `;
+                    requestsContainer.appendChild(requestElement);
+                });
+
+                // Hiç istek yoksa mesaj göster
+                if (snapshot.empty) {
+                    requestsContainer.innerHTML = '<p class="no-requests">Henüz gelen arkadaşlık isteği yok.</p>';
+                }
+            });
+        }
+
+        // Sayfanın yüklenmesi ve auth durumu değişikliğinde istekleri dinle
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                listenToFriendRequests();
+            }
+        });
+
+        // Gönderilen istekleri yükleme fonksiyonu
+        async function loadSentRequests() {
+            try {
+                const requestsRef = collection(db, 'friendRequests');
+                const q = query(requestsRef, 
+                    where('from', '==', auth.currentUser.uid), 
+                    where('status', '==', 'pending')
+                );
+                
+                // Önceki listener'ı temizle
+                if (window.sentRequestsUnsubscribe) {
+                    window.sentRequestsUnsubscribe();
+                }
+                
+                // Yeni listener ekle
+                window.sentRequestsUnsubscribe = onSnapshot(q, async (snapshot) => {
+                    const container = document.getElementById('sentRequests');
+                    container.innerHTML = '';
+
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p class="no-requests">Gönderilen istek yok</p>';
+                        return;
+                    }
+
+                    for (const requestDoc of snapshot.docs) {
+                        const request = requestDoc.data();
+                        
+                        // İstek gönderilen kullanıcının bilgilerini al
+                        const receiverDoc = await getDoc(doc(db, 'users', request.to));
+                        const receiverData = receiverDoc.data();
+                        
+                        if (!receiverData) continue;
+
+                        const displayName = getUserDisplayName(receiverData);
+                        const defaultAvatar = `https://api.dicebear.com/6.x/avataaars/svg?seed=${request.to}`;
+                        const profileImage = receiverData.photoURL || defaultAvatar;
+
+                        const requestCard = document.createElement('div');
+                        requestCard.className = 'request-card';
+                        requestCard.innerHTML = `
+                            <div class="user-avatar">
+                                <img src="${profileImage}" 
+                                    alt="${displayName}" 
+                                    onerror="this.src='${defaultAvatar}'"
+                                >
+                            </div>
+                            <div class="user-info">
+                                <h3>${displayName}</h3>
+                                ${receiverData.status ? `<p class="user-status">${receiverData.status}</p>` : ''}
+                            </div>
+                            <div class="request-buttons">
+                                <button onclick="cancelFriendRequest('${requestDoc.id}')" class="cancel">
+                                    <span class="material-symbols-outlined">cancel</span>
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(requestCard);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Gönderilen istekler yükleme hatası:', error);
+            }
+        }
+
+        // İstek iptal etme fonksiyonu
+        window.cancelFriendRequest = async function(requestId) {
+            if (confirm('Bu arkadaşlık isteğini iptal etmek istediğinizden emin misiniz?')) {
+                try {
+                    await deleteDoc(doc(db, 'friendRequests', requestId));
+                    
+                    const notification = document.createElement('div');
+                    notification.className = 'notification success';
+                    notification.innerHTML = `
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <span>Arkadaşlık isteği iptal edildi!</span>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+
+                } catch (error) {
+                    console.error('İstek iptal hatası:', error);
+                    const notification = document.createElement('div');
+                    notification.className = 'notification error';
+                    notification.innerHTML = `
+                        <span class="material-symbols-outlined">error</span>
+                        <span>İstek iptal edilemedi: ${error.message}</span>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            }
+        };
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trigoter - Anasayfa</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  <style>
+    .admin-panel {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        min-width: 300px;
+    }
+
+    .admin-content h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #onlineCount {
+        color: #2ecc71;
+        font-weight: bold;
+        font-size: 20px;
+        display: inline-block;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .online-user {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .user-email {
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .user-time {
+        color: #7f8c8d;
+        font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="icerik">
+        <h2>Trigoter</h2>
+        <button class="hamburger" id="hamburgerBtn">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="nav-links" id="navLinks">
+            <ul>
+                <li><a href="index.html"><span class="material-symbols-outlined">home</span> Anasayfa</a></li>
+                <li><a href="ara.html"><span class="material-symbols-outlined">forum</span> Odalar</a></li>
+                <li><a href="profil.html"><span class="material-symbols-outlined">person</span> Profil</a></li>
+                <li><button class="Btn" id="logoutButton">
+                    <span class="material-symbols-outlined">logout</span> Çıkış
+                </button></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+  <main class="home-container">
+    <!-- Hoşgeldin Bölümü -->
+    <section class="welcome-section">
+      <h1>Hoş Geldiniz <span id="userName">...</span></h1>
+      <p>Direkt biriyle sohbete başlayın ya da bir sohbet odasına katılın!</p>
+    </section>
+
+    <!-- Hızlı Eylemler -->
+    <section class="quick-actions">
+      <button class="action-button" onclick="window.location.href='ara.html'">
+        <span class="material-symbols-outlined">forum</span>
+        Odaları Keşfet
+      </button>
+      <button class="action-button random-chat">
+        <span class="material-symbols-outlined">person_search</span>
+        Rastgele Biriyle Konuş
+      </button>
+      <button class="action-button" onclick="window.location.href='friends.html'">
+        <span class="material-symbols-outlined">group</span>
+        Arkadaşlarım
+      </button>
+    </section>
+    
+    <!-- Quick Actions bölümünden sonra -->
+    <section class="rooms-section">
+      <h2>Popüler Odalar</h2>
+      <div class="rooms-container">
+        <div class="room-card">
+          <span class="material-symbols-outlined room-icon">sports_esports</span>
+          <h3>Oyun Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=oyun'">Katıl</button>
+        </div>
+        
+        <div class="room-card">
+          <span class="material-symbols-outlined room-icon">chat</span>
+          <h3>Sohbet Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=sohbet'">Katıl</button>
+        </div>
+        
+        <div class="room-card">
+          <span class="material-symbols-outlined room-icon">music_note</span>
+          <h3>Müzik Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=muzik'">Katıl</button>
+        </div>
+        
+        <div class="room-card">
+          <span class="material-symbols-outlined room-icon">sports_soccer</span>
+          <h3>Spor Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=spor'">Katıl</button>
+        </div>
+        
+        <div class="room-card">
+          <span class="material-symbols-outlined room-icon">computer</span>
+          <h3>Teknoloji Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=teknoloji'">Katıl</button>
+        </div>
+        
+        <div class="room-card">
+          <span class="material-symbols-outlined room-icon">celebration</span>
+          <h3>Eğlence Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=eglence'">Katıl</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Popüler Odalar section'ından sonra ekleyin -->
+    <section class="rooms-section">
+      <h2>Mesaj Attığım Odalar</h2>
+      <div class="rooms-container" id="recentRooms">
+        <!-- Burası JavaScript ile doldurulacak -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal yapısı -->
+  <div id="createRoomModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Yeni Oda Oluştur</h2>
+        <form id="createRoomForm">
+            <input type="text" id="roomName" placeholder="Oda Adı" required>
+            <select id="roomType" required>
+                <option value="public">Herkese Açık</option>
+                <option value="private">Şifreli Oda</option>
+            </select>
+            <div id="passwordField">
+                <input type="password" id="roomPassword" placeholder="Oda Şifresi">
+            </div>
+            <button type="submit">Oda Oluştur</button>
+        </form>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { 
+        getFirestore, 
+        collection, 
+        addDoc, 
+        getDocs, 
+        getDoc,
+        doc, 
+        query, 
+        where, 
+        updateDoc,
+        deleteDoc,
+        onSnapshot,
+        serverTimestamp,
+        limit,
+        orderBy,
+        arrayUnion
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getDatabase, ref, onValue, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+
+    const firebaseConfig = {
+            apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+            authDomain: "data-6163e.firebaseapp.com",
+            databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "data-6163e",
+            storageBucket: "data-6163e.appspot.com",
+            messagingSenderId: "269366310063",
+            appId: "1:269366310063:web:5b5e043f83421a5471905a"
+        };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const rtdb = getDatabase(app);
+
+    // Kullanıcı kontrolü
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+    });
+
+    // Kullanıcı bilgilerini yükle
+    async function loadUserData(user) {
+      const userDoc = await db.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        document.getElementById('userName').textContent = userDoc.data().name || 'Kullanıcı';
+      }
+    }
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    hamburgerBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Menü dışı tıklamada kapat
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('nav')) {
+            navLinks.classList.remove('active');
+        }
+    });
+    // Popüler odaları yükle
+    async function loadRooms() {
+      try {
+        console.log('Odalar yükleniyor...');
+        
+        const roomsRef = collection(db, 'rooms');
+        console.log('Collection referansı alındı');
+        
+        const q = query(roomsRef, limit(6));
+        console.log('Query oluşturuldu');
+
+        const roomsContainer = document.getElementById('popularRooms');
+        if (!roomsContainer) {
+          console.error('popularRooms container bulunamadı!');
+          return;
+        }
+
+        onSnapshot(q, (querySnapshot) => {
+          console.log('Snapshot alındı, oda sayısı:', querySnapshot.size);
+          
+          roomsContainer.innerHTML = '';
+          
+          if (querySnapshot.empty) {
+            console.log('Hiç oda bulunamadı');
+            roomsContainer.innerHTML = '<p>Henüz oda bulunmuyor.</p>';
+            return;
+          }
+
+          querySnapshot.forEach((doc) => {
+            console.log('Oda bulundu:', doc.id);
+            const roomData = doc.data();
+            const roomCard = createRoomCard(doc.id, roomData);
+            roomsContainer.appendChild(roomCard);
+          });
+        }, (error) => {
+          console.error('Odaları yükleme hatası:', error);
+        });
+
+      } catch (error) {
+        console.error('Beklenmeyen hata:', error);
+      }
+    }
+
+    // Oda kartı oluşturma
+    function createRoomCard(roomId, roomData) {
+      const div = document.createElement('div');
+      div.className = 'room-card';
+      
+      const isPrivate = roomData.isPrivate;
+      const icon = isPrivate ? 'lock' : 'chat';
+      
+      div.innerHTML = `
+        <span class="material-symbols-outlined room-icon">${icon}</span>
+        <h3>${roomData.name || 'İsimsiz Oda'}</h3>
+        <button onclick="joinRoom('${roomId}')">
+          ${isPrivate ? 'Şifre ile Katıl' : 'Katıl'}
+        </button>
+      `;
+      return div;
+    }
+
+    // Auth state değiştiğinde çağır
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('Kullanıcı oturum açtı, odalar yükleniyor...');
+        loadRooms();
+        loadRecentRooms();
+      } else {
+        console.log('Kullanıcı oturum açmamış, login sayfasına yönlendiriliyor...');
+        window.location.href = "login.html";
+      }
+    });
+
+    // Rastgele sohbet fonksiyonu
+    async function startRandomChat() {
+        try {
+            console.log("Fonksiyon başladı");
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                alert('Lütfen önce giriş yapın');
+                return;
+            }
+
+            console.log("Kullanıcı:", currentUser.uid);
+            const button = document.querySelector('.random-chat');
+            button.disabled = true;
+            button.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span> Eşleşme Aranıyor...';
+
+            const waitingRef = collection(db, 'waitingUsers');
+
+            // Önce eski bekleyen kaydını temizle
+            console.log("Eski kayıtlar kontrol ediliyor");
+            const oldWaitingQuery = query(
+                waitingRef,
+                where('userId', '==', currentUser.uid)
+            );
+            const oldWaitingDocs = await getDocs(oldWaitingQuery);
+            oldWaitingDocs.forEach(async (doc) => {
+                await deleteDoc(doc.ref);
+            });
+
+            // Bekleyen kullanıcıları kontrol et
+            console.log("Bekleyen kullanıcılar kontrol ediliyor");
+            const waitingSnapshot = await getDocs(query(
+                waitingRef,
+                where('userId', '!=', currentUser.uid),
+                where('status', '==', 'waiting')
+            ));
+
+            if (waitingSnapshot.empty) {
+                console.log("Bekleyen kullanıcı yok, listeye ekleniyor");
+                // Bekleyen kullanıcı yoksa, bekleme listesine ekle
+                const waitingDoc = await addDoc(waitingRef, {
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName || 'Anonim',
+                    status: 'waiting',
+                    timestamp: serverTimestamp()
+                });
+
+                // Eşleşme bekle
+                console.log("Eşleşme bekleniyor");
+                const unsubscribe = onSnapshot(doc(db, 'waitingUsers', waitingDoc.id), async (docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        const data = docSnapshot.data();
+                        if (data.status === 'matched' && data.chatId) {
+                            console.log("Eşleşme bulundu:", data.chatId);
+                            unsubscribe();
+                            window.location.replace(`chat.html?id=${data.chatId}`);
+                        }
+                    }
+                });
+
+                // 30 saniye sonra iptal et
+                setTimeout(async () => {
+                    try {
+                        unsubscribe();
+                        const docRef = doc(db, 'waitingUsers', waitingDoc.id);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists() && docSnap.data().status === 'waiting') {
+                            await deleteDoc(docRef);
+                            button.disabled = false;
+                            button.innerHTML = '<span class="material-symbols-outlined">person_search</span> Rastgele Sohbet';
+                            alert('Eşleşme bulunamadı, lütfen tekrar deneyin.');
+                        }
+                    } catch (error) {
+                        console.error('Timeout hatası:', error);
+                    }
+                }, 30000);
+
+            } else {
+                console.log("Bekleyen kullanıcı bulundu, eşleştiriliyor");
+                // Bekleyen kullanıcı varsa, eşleştir
+                const matchUser = waitingSnapshot.docs[0];
+                
+                // Yeni sohbet oluştur
+                const chatDoc = await addDoc(collection(db, 'chats'), {
+                    users: [currentUser.uid, matchUser.data().userId],
+                    userNames: [currentUser.displayName || 'Anonim', matchUser.data().userName],
+                    startTime: serverTimestamp(),
+                    active: true
+                });
+
+                console.log("Sohbet oluşturuldu:", chatDoc.id);
+
+                // Eşleşen kullanıcıyı güncelle
+                await updateDoc(doc(db, 'waitingUsers', matchUser.id), {
+                    status: 'matched',
+                    chatId: chatDoc.id,
+                    matchedWith: currentUser.uid
+                });
+
+                console.log("Chat sayfasına yönlendiriliyor");
+                window.location.replace(`chat.html?id=${chatDoc.id}`);
+            }
+
+        } catch (error) {
+            console.error('Hata detayı:', error);
+            const button = document.querySelector('.random-chat');
+            button.disabled = false;
+            button.innerHTML = '<span class="material-symbols-outlined">person_search</span> Rastgele Sohbet';
+            alert('Bir hata oluştu: ' + error.message);
+        }
+    }
+    document.getElementById("logoutButton").addEventListener("click", function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // Çıkış yaptıktan sonra giriş sayfasına yönlendir
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+            });
+        });
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', () => {
+        const randomChatButton = document.querySelector('.random-chat');
+        if (randomChatButton) {
+            randomChatButton.addEventListener('click', startRandomChat);
+        }
+
+        // openModalBtn ID'li butonu seç (class yerine ID kullanıyoruz)
+        const createRoomBtn = document.getElementById('openModalBtn');
+        if (createRoomBtn) {
+            createRoomBtn.addEventListener('click', () => {
+                console.log('Buton tıklandı');
+                const modal = document.getElementById('createRoomModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                } else {
+                    console.error('Modal bulunamadı!');
+                }
+            });
+        } else {
+            console.error('Oluştur butonu bulunamadı!');
+        }
+
+        // Modal kapatma butonu için event listener
+        const closeBtn = document.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                const modal = document.getElementById('createRoomModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Modal dışına tıklama kontrol
+        window.onclick = (event) => {
+            const modal = document.getElementById('createRoomModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    });
+
+    // Toast mesajı gösterme fonksiyonu
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Buton event listener'ları
+    document.querySelector('.random-chat').addEventListener('click', startRandomChat);
+    
+    document.querySelector('.create-room').addEventListener('click', () => {
+        document.getElementById('createRoomModal').style.display = 'flex';
+    });
+
+    // Oda oluşturma formu
+    document.getElementById('createRoomForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const button = e.target.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span> Oluşturuluyor...';
+
+        try {
+            const roomName = document.getElementById('roomName').value;
+            const roomType = document.getElementById('roomType').value;
+            const roomPassword = document.getElementById('roomPassword').value;
+            
+            const roomData = {
+                name: roomName,
+                type: roomType,
+                createdBy: auth.currentUser.uid,
+                createdAt: serverTimestamp(),
+                userCount: 0,
+                lastActivity: serverTimestamp()
+            };
+
+            // Eğer şifreli oda ise şifreyi ekle
+            if (roomType === 'private') {
+                if (!roomPassword) {
+                    showToast('Şifreli oda için şifre gereklidir!', 'error');
+                    return;
+                }
+                roomData.isPrivate = true;
+                roomData.password = roomPassword; // Gerçek uygulamada şifreyi hash'lemeyi unutmayın
+            }
+
+            const roomRef = await addDoc(collection(db, 'rooms'), roomData);
+            window.location.href = `chatroom.html?room=${roomRef.id}`;
+        } catch (error) {
+            console.error('Oda oluşturma hatası:', error);
+            showToast('Oda oluşturulurken bir hata oluştu!', 'error');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = 'Oluştur';
+        }
+    });
+
+    // Modal kapatma
+    window.closeModal = function() {
+        document.getElementById('createRoomModal').style.display = 'none';
+        document.getElementById('createRoomForm').reset();
+    }
+
+    // Oda kartına tıklama
+    window.joinRoom = async function(roomId) {
+        try {
+            const roomRef = doc(db, 'rooms', roomId);
+            const roomDoc = await getDoc(roomRef);
+
+            if (!roomDoc.exists()) {
+                showToast('Bu oda artık mevcut değil!', 'error');
+                return;
+            }
+
+            const roomData = roomDoc.data();
+            
+            // Şifreli oda kontrolü
+            if (roomData.isPrivate) {
+                const password = prompt('Bu oda şifre korumalıdır. Lütfen şifreyi girin:');
+                if (!password) return;
+                
+                if (password !== roomData.password) { // Gerçek uygulamada hash karşılaştırması yapılmalı
+                    showToast('Yanlış şifre!', 'error');
+                    return;
+                }
+            }
+
+            // Kullanıcının son odalarına ekle
+            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                recentRooms: arrayUnion(roomId)
+            });
+
+            window.location.href = `chatroom.html?room=${roomId}`;
+        } catch (error) {
+            console.error('Odaya katılma hatası:', error);
+            showToast('Odaya katılırken bir hata oluştu!', 'error');
+        }
+    }
+
+    // Son girilen odaları yükle
+    async function loadRecentRooms() {
+      if (!auth.currentUser) return;
+
+      try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const roomsContainer = document.getElementById('recentRooms');
+
+        if (!roomsContainer) {
+          console.error('recentRooms container bulunamadı!');
+          return;
+        }
+
+        roomsContainer.innerHTML = '';
+
+        if (!userDocSnap.exists() || !userDocSnap.data().recentRooms) {
+          roomsContainer.innerHTML = '<p>Henüz hiç odaya katılmadınız.</p>';
+          return;
+        }
+
+        // Son 6 odayı al
+        const recentRoomIds = userDocSnap.data().recentRooms.slice(-6);
+
+        for (const roomId of recentRoomIds.reverse()) { // En son girilenler başta görünsün
+          const roomData = {
+            name: getRoomName(roomId), // Oda ID'sine göre isim belirle
+            icon: getRoomIcon(roomId)  // Oda ID'sine göre icon belirle
+          };
+
+          const roomCard = document.createElement('div');
+          roomCard.className = 'room-card';
+          roomCard.innerHTML = `
+            <span class="material-symbols-outlined room-icon">${roomData.icon}</span>
+            <h3>${roomData.name}</h3>
+            <button onclick="window.location.href='chatroom.html?room=${roomId}'">Katıl</button>
+          `;
+          roomsContainer.appendChild(roomCard);
+        }
+      } catch (error) {
+        console.error('Son odaları yükleme hatası:', error);
+      }
+    }
+
+    // Oda isimlerini belirlemek için yardımcı fonksiyon
+    function getRoomName(roomId) {
+      const roomNames = {
+        'oyun': 'Oyun Odası',
+        'sohbet': 'Sohbet Odası',
+        'muzik': 'Müzik Odası',
+        'spor': 'Spor Odası',
+        'teknoloji': 'Teknoloji Odası',
+        'eglence': 'Eğlence Odası'
+      };
+      return roomNames[roomId] || 'Bilinmeyen Oda';
+    }
+
+    // Oda ikonlarını belirlemek için yardımcı fonksiyon
+    function getRoomIcon(roomId) {
+      const roomIcons = {
+        'oyun': 'sports_esports',
+        'sohbet': 'chat',
+        'muzik': 'music_note',
+        'spor': 'sports_soccer',
+        'teknoloji': 'computer',
+        'eglence': 'celebration'
+      };
+      return roomIcons[roomId] || 'question_mark';
+    }
+
+    // Bir odaya katılındığında son odalar listesini güncelle
+    async function updateRecentRooms(roomId) {
+      if (!auth.currentUser) return;
+
+      try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        let recentRooms = userDocSnap.exists() ? (userDocSnap.data().recentRooms || []) : [];
+        
+        // Eğer oda zaten listede varsa, onu çıkar
+        recentRooms = recentRooms.filter(id => id !== roomId);
+        
+        // Yeni odayı listenin sonuna ekle
+        recentRooms.push(roomId);
+        
+        // Sadece son 6 odayı tut
+        if (recentRooms.length > 6) {
+          recentRooms = recentRooms.slice(-6);
+        }
+        
+        // Firestore'u güncelle
+        await updateDoc(userDocRef, {
+          recentRooms: recentRooms
+        });
+        
+        // Son odalar listesini yeniden yükle
+        loadRecentRooms();
+      } catch (error) {
+        console.error('Son odalar güncellenirken hata:', error);
+      }
+    }
+
+    // Sayfa yüklendiğinde ve auth durumu değiştiğinde son odaları yükle
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadRecentRooms();
+      }
+    });
+
+    // Oda butonlarına tıklandığında son odaları güncelle
+    document.querySelectorAll('.room-card button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const roomId = e.target.getAttribute('onclick').match(/room=(\w+)/)[1];
+        updateRecentRooms(roomId);
+      });
+    });
+
+    // Aktif odaları yükle (mesaj atılan odalar)
+    function loadActiveRooms() {
+      console.log('loadActiveRooms başlatıldı');
+      
+      const messagesQuery = query(
+        collection(db, 'messages'),
+        orderBy('timestamp', 'desc'),
+        limit(50)  // Son 50 mesaj al
+      );
+
+      onSnapshot(messagesQuery, async (snapshot) => {
+        console.log('Mesajlar alındı:', snapshot.size);
+        const roomsContainer = document.getElementById('popularRooms');
+        if (!roomsContainer) {
+          console.error('popularRooms container bulunamadı!');
+          return;
+        }
+        
+        roomsContainer.innerHTML = '';
+        
+        // Benzersiz odaları tutmak için Map kullan
+        const uniqueRooms = new Map();
+        
+        for (const doc of snapshot.docs) {
+          const message = doc.data();
+          if (message.roomId && !uniqueRooms.has(message.roomId)) {
+            try {
+              const roomDoc = await getDoc(doc(db, 'rooms', message.roomId));
+              if (roomDoc.exists()) {
+                uniqueRooms.set(message.roomId, {
+                  id: message.roomId,
+                  ...roomDoc.data(),
+                  lastMessage: message.timestamp
+                });
+              }
+            } catch (error) {
+              console.error('Oda bilgisi alınamadı:', error);
+            }
+          }
+        }
+
+        if (uniqueRooms.size === 0) {
+          roomsContainer.innerHTML = '<p>Henüz aktif oda bulunmuyor.</p>';
+          return;
+        }
+
+        // Odaları son mesaj tarihine göre sırala
+        const sortedRooms = Array.from(uniqueRooms.values())
+          .sort((a, b) => b.lastMessage - a.lastMessage)
+          .slice(0, 6);  // İlk 6 odayı göster
+
+        sortedRooms.forEach(room => {
+          const roomCard = createRoomCard(room.id, room);
+          roomsContainer.appendChild(roomCard);
+        });
+      });
+    }
+
+    // Kategorilerden odaları yükle
+    async function loadCategoryRooms() {
+      console.log('Kategori odaları yükleniyor...');
+      
+      const categories = ['Oyun', 'Sohbet', 'Müzik', 'Spor', 'Teknoloji', 'Eğlence'];
+      const roomsContainer = document.getElementById('popularRooms');
+      
+      categories.forEach(category => {
+        // Her kategori için bir oda oluştur
+        const roomCard = document.createElement('div');
+        roomCard.className = 'room-card';
+        roomCard.innerHTML = `
+          <h3>${category} Odası</h3>
+          <button onclick="window.location.href='chatroom.html?room=${category.toLowerCase()}'">Katıl</button>
+        `;
+        roomsContainer.appendChild(roomCard);
+      });
+    }
+
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Sayfa yüklendi');
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log('Kullanıcı oturum açmış:', user.uid);
+          loadRooms();
+        } else {
+          console.log('Kullanıcı oturum açmamış');
+          window.location.href = "login.html";
+        }
+      });
+    });
+
+    // Modal işlemleri için ayrı bir bölüm
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal elementlerini seç
+        const modal = document.getElementById('createRoomModal');
+        const openBtn = document.getElementById('openModalBtn');
+        const closeBtn = document.querySelector('.close');
+
+        if (!modal || !openBtn || !closeBtn) {
+            console.error('Modal elementleri bulunamadı:', {
+                modal: !!modal,
+                openBtn: !!openBtn,
+                closeBtn: !!closeBtn
+            });
+            return;
+        }
+
+        // Modal açma fonksiyonu
+        openBtn.onclick = function() {
+            console.log('Modal açılıyor...');
+            modal.style.display = 'block';
+        }
+
+        // Modal kapatma fonksiyonları
+        closeBtn.onclick = function() {
+            console.log('Modal kapatılıyor (X butonu)...');
+            modal.style.display = 'none';
+        }
+
+        // Dışarı tıklanınca kapatma
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                console.log('Modal kapatılıyor (dışarı tıklama)...');
+                modal.style.display = 'none';
+            }
+        }
+
+        // Oda tipi değişince şifre alanını göster/gizle
+        const roomTypeSelect = document.getElementById('roomType');
+        const passwordField = document.getElementById('passwordField');
+        
+        if (roomTypeSelect && passwordField) {
+            roomTypeSelect.onchange = function() {
+                passwordField.style.display = 
+                    this.value === 'private' ? 'block' : 'none';
+            }
+        }
+    });
+
+    // Firebase script bölümüne ekleyin
+    async function loadMyActiveRooms() {
+      if (!auth.currentUser) return;
+
+      try {
+        console.log('Mesaj atılan odalar yükleniyor...');
+        
+        // Mesajlar koleksiyonunu kontrol et
+        const messagesRef = collection(db, 'messages');
+        const q = query(messagesRef);
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach((doc) => {
+          console.log('Mesaj:', doc.id, ' => ', doc.data());
+        });
+
+      } catch (error) {
+        console.error('Hata:', error);
+      }
+    }
+
+    // Auth state değiştiğinde çağır
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadMyActiveRooms();
+      }
+    });
+
+    // Kullanıcı oturum durumunu kontrol et
+    onAuthStateChanged(auth, async (user) => {
+        // Sadece index.html sayfasında çalışsın
+        if (window.location.pathname !== '/index.html' && window.location.pathname !== '/') {
+            return;
+        }
+
+        const adminPanel = document.getElementById('adminPanel');
+        if (!adminPanel) return;
+
+        if (!user) {
+            adminPanel.style.display = 'none';
+            return;
+        }
+
+        try {
+            // Admin kontrolü
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data();
+
+            if (!userData?.isAdmin) {
+                adminPanel.style.display = 'none';
+                return;
+            }
+
+            // Admin panelini göster ve online kullanıcıları takip et
+            adminPanel.style.display = 'block';
+            
+            const onlineRef = ref(rtdb, 'online');
+            onValue(onlineRef, (snapshot) => {
+                const onlineUsers = snapshot.val();
+                const usersList = document.getElementById('onlineUsersList');
+                const countElement = document.getElementById('onlineCount');
+                
+                if (!usersList || !countElement) return;
+                
+                if (!onlineUsers) {
+                    countElement.textContent = "0";
+                    usersList.innerHTML = '<div class="online-user">Aktif kullanıcı yok</div>';
+                    return;
+                }
+
+                const activeUsers = Object.entries(onlineUsers).filter(([_, data]) => data !== null);
+                const userCount = activeUsers.length;
+                
+                countElement.textContent = userCount.toString();
+
+                usersList.innerHTML = '';
+                activeUsers.forEach(([uid, userData]) => {
+                    if (userData && userData.timestamp) {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'online-user';
+                        const time = new Date(userData.timestamp).toLocaleTimeString();
+                        userItem.innerHTML = `
+                            <span class="user-email">${userData.email || 'Anonim'}</span>
+                            <span class="user-time">${time}</span>
+                        `;
+                        usersList.appendChild(userItem);
+                    }
+                });
+            });
+
+        } catch (error) {
+            console.error('Admin kontrolü sırasında hata:', error);
+            adminPanel.style.display = 'none';
+        }
+    });
+
+    // Kullanıcı online durumunu güncelle
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // Kullanıcı giriş yaptığında
+            const userStatusRef = ref(rtdb, `online/${user.uid}`);
+            const connectedRef = ref(rtdb, '.info/connected');
+            
+            // Bağlantı durumunu dinle
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    console.log("Bağlantı kuruldu");
+                    
+                    // Kullanıcıyı online olarak işaretle
+                    set(userStatusRef, {
+                        email: user.email,
+                        timestamp: serverTimestamp(),
+                        lastSeen: serverTimestamp()
+                    }).then(() => {
+                        console.log("Online durumu güncellendi");
+                    }).catch((error) => {
+                        console.error("Online durumu güncellenirken hata:", error);
+                    });
+
+                    // Kullanıcı çıkış yaptığında veya sayfa kapandığında
+                    onDisconnect(userStatusRef).remove();
+                } else {
+                    console.log("Bağlantı yok");
+                }
+            });
+
+            // Admin paneli için online kullanıcıları dinle
+            if ((await getDoc(doc(db, "users", user.uid))).data()?.isAdmin) {
+                const onlineRef = ref(rtdb, 'online');
+                
+                onValue(onlineRef, (snapshot) => {
+                    const onlineUsers = snapshot.val();
+                    const countElement = document.getElementById('onlineCount');
+                    const usersList = document.getElementById('onlineUsersList');
+                    
+                    console.log("Online kullanıcılar:", onlineUsers);
+                    
+                    if (!countElement || !usersList) return;
+                    
+                    if (!onlineUsers) {
+                        countElement.textContent = "0";
+                        usersList.innerHTML = '<div class="online-user">Aktif kullanıcı yok</div>';
+                        return;
+                    }
+
+                    const activeUsers = Object.entries(onlineUsers).filter(([_, data]) => data !== null);
+                    const userCount = activeUsers.length;
+                    
+                    console.log(`Aktif kullanıcı sayısı: ${userCount}`);
+                    countElement.textContent = userCount.toString();
+
+                    usersList.innerHTML = '';
+                    activeUsers.forEach(([uid, userData]) => {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'online-user';
+                        const time = new Date(userData.timestamp).toLocaleTimeString();
+                        userItem.innerHTML = `
+                            <span class="user-email">${userData.email || 'Anonim'}</span>
+                            <span class="user-time">${time}</span>
+                        `;
+                        usersList.appendChild(userItem);
+                    });
+                }, (error) => {
+                    console.error("Online kullanıcıları okuma hatası:", error);
+                });
+            }
+        }
+    });
+
+    // Sayfadan ayrılmadan önce kullanıcıyı offline yap
+    window.addEventListener('beforeunload', () => {
+        if (auth.currentUser) {
+            const userStatusRef = ref(rtdb, `online/${auth.currentUser.uid}`);
+            set(userStatusRef, null);
+        }
+    });
+  </script>
+</body>
+</html>

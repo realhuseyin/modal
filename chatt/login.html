@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Login</title>
+</head>
+<body>
+  <div class="logo">
+    <h2>Trigoter</h2>
+  </div>
+
+  <div class="main-container">
+    <!-- Sol taraf - Giriş Formu -->
+    <div class="form-container">
+      <form class="form" id="loginForm">
+        <h2>Giriş Yap</h2>
+        <span class="input-span">
+          <label for="loginEmail" class="label">Email</label>
+          <input type="email" name="loginEmail" id="loginEmail" required placeholder="Mail adresinizi girin">
+        </span>
+        <span class="input-span">
+          <label for="loginPassword" class="label">Şifre</label>
+          <input type="password" name="loginPassword" id="loginPassword" required placeholder="Şifrenizi girin">
+        </span>
+        <div class="giris">
+          <input class="submit" type="submit" value="Giriş Yap">
+        </div>
+      </form>
+    </div>
+
+    <!-- Sağ taraf - Kayıt Formu -->
+    <div class="form-container">
+      <form class="form" id="signupForm">
+        <h2>Kayıt Ol</h2>
+        <span class="input-span">
+          <label for="signupEmail" class="label">Email</label>
+          <input type="email" name="signupEmail" id="signupEmail" required placeholder="Mail adresinizi girin">
+        </span>
+        <span class="input-span">
+          <label for="signupPassword" class="label">Şifre oluşturun</label>
+          <input type="password" name="signupPassword" id="signupPassword" required placeholder="Şifre oluşturun">
+        </span>
+        <span class="input-span">
+          <label for="signupUsername" class="label">Kullanıcı Adı</label>
+          <input type="text" name="signupUsername" id="signupUsername" required placeholder="Kullanıcı adınızı girin">
+        </span>
+        <input class="submit" type="submit" value="Üye Ol">
+      </form>
+    </div>
+  </div>
+
+  <div id="adminPanel" style="display: none;" class="admin-panel">
+    <h3>Online Kullanıcılar: <span id="onlineCount">0</span></h3>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js" type="module"></script>
+  <script type="module">
+    // Firebase importları
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    import { getDatabase, ref, onValue, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+
+    // Firebase yapılandırması
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVO3nVcTZ4Ht8L-Zq_lnuJHuIsWuHkR2U",
+      authDomain: "data-6163e.firebaseapp.com",
+      databaseURL: "https://data-6163e-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "data-6163e",
+      storageBucket: "data-6163e.appspot.com",
+      messagingSenderId: "269366310063",
+      appId: "1:269366310063:web:5b5e043f83421a5471905a"
+    };
+
+    // Firebase'i başlatma
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const rtdb = getDatabase(app);
+
+    // Login form işlemi
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            // Firestore'dan kullanıcı bilgilerini kontrol et
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data();
+            
+            // Admin kontrolü
+            if (userData && userData.isAdmin) {
+                document.getElementById('adminPanel').style.display = 'block';
+                
+                // Online kullanıcıları takip et
+                const onlineRef = ref(rtdb, 'online');
+                onValue(onlineRef, (snapshot) => {
+                    const onlineUsers = snapshot.val();
+                    const count = onlineUsers ? Object.keys(onlineUsers).length : 0;
+                    document.getElementById('onlineCount').textContent = count;
+                });
+            }
+
+            // Kullanıcı durumunu güncelle
+            const userStatusRef = ref(rtdb, `online/${user.uid}`);
+            await set(userStatusRef, {
+                email: user.email,
+                timestamp: new Date().toISOString()
+            });
+
+            // Kullanıcı çıkış yaptığında veya bağlantı koptuğunda
+            onDisconnect(userStatusRef).remove();
+
+            window.location.href = "index.html";
+        } catch (error) {
+            console.error('Login Error:', error);
+            alert('Error: ' + error.message);
+        }
+    });
+
+    // Signup form işlemi
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const username = document.getElementById('signupUsername').value;
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            // Admin kontrolü
+            const isAdmin = email === "asklarsonsuz2024@gmail.com";
+            
+            // Kullanıcı bilgilerini Firestore'a kaydedelim
+            await setDoc(doc(db, "users", user.uid), {
+                email: email,
+                username: username,
+                isAdmin: isAdmin,
+                createdAt: new Date().toISOString()
+            });
+
+            console.log('User signed up and data saved:', user);
+            window.location.href = "profil.html";
+        } catch (error) {
+            console.error('Signup Error:', error);
+            alert('Error: ' + error.message);
+        }
+    });
+  </script>
+</body>
+</html>
